@@ -360,9 +360,8 @@ function renderWeeks() {
 }
 
 function calendarWeekNote(week, code) {
- const progress = week.calendarProgress;
- if (!progress || (week.status === 'Done' && !week.calendarDone)) return '';
- const text = week.calendarDone ? 'Done from Study Calendar' : `${progress.done}/${progress.total} linked calendar blocks done`;
+ if (!week.calendarProgress || (!week.calendarDone && !week.calendarOverride)) return '';
+ const text = week.calendarDone ? 'Done from Study Calendar' : '';
  const resume = week.calendarOverride
   ? `<button type="button" class="link-button" data-resume-sync="${esc(week.id)}" data-course="${code}">Use calendar status</button>`
   : '';
