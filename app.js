@@ -148,6 +148,7 @@ let editor;
 let toastTimer;
 let calendarRenderer;
 let calendarRequest;
+let courseSectionMotion;
 
 function readSaved(key) {
  try {
@@ -429,10 +430,13 @@ function renderOverview(tasks, open, due, date) {
 function renderCourseArea(section) {
  const selected = current();
  const { total, done, percent } = summarize(courseWeeks(selected));
- $('#course-code').textContent = selected.code;
+ const codeLabel = $('#course-code');
+ const tabs = $('#section-tabs');
+ const previousSection = tabs.querySelector('[aria-current]')?.dataset.jumpSection;
+ const changed = previousSection && (codeLabel.textContent !== selected.code || previousSection !== section);
+ codeLabel.textContent = selected.code;
  $('#course-name').textContent = selected.name;
  $('#course-progress').innerHTML = `<strong>${percent}% complete</strong>${done} of ${total} study weeks finished`;
- const tabs = $('#section-tabs');
  setMarkup(tabs, Object.keys(courseSections).map(section => sectionLink(selected.code, section)).join(''));
  updateSectionLinks(tabs, section);
  for (const key of Object.keys(courseSections)) {
@@ -441,6 +445,17 @@ function renderCourseArea(section) {
  if (section === 'weekly') renderWeeks();
  else if (section === 'tasks') renderTasks('tasks');
  else renderInfo();
+
+ if (changed) {
+  courseSectionMotion?.cancel();
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+   courseSectionMotion = $('#course-' + section).animate([
+    { transform: 'translateY(6px)' },
+    { transform: 'translateY(-2px)', offset: 0.55 },
+    { transform: 'none' },
+   ], { duration: 170, easing: 'ease-out' });
+  }
+ }
 }
 
 function matchesTask(task, filter, search) {
