@@ -127,7 +127,13 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
  const key = course && week ? course.code + '/' + week : '';
  const allQuestions = () => practiceQuestions(state, course.code, week, starter, true);
  const header = `<header class="page-heading"><div><div class="eyebrow">STUDY DESK</div><h1 id="practice-title">Practice</h1></div>
-  ${key ? '<button type="button" data-practice-import>Import questions</button>' : ''}</header>`;
+  ${key ? `<div class="practice-heading-actions">
+   <button type="button" data-practice-import>Import questions</button>
+   <details class="practice-options" hidden>
+    <summary><span aria-hidden="true">⋯</span><span class="sr-only">Question options</span></summary>
+    <div class="practice-options-panel"><button type="button" data-remove-question>Remove question</button></div>
+   </details>
+  </div>` : ''}</header>`;
  const pickers = course ? `<div class="practice-pickers">
   <label class="field">Course <select data-practice-course>${state.courses.map(item =>
    `<option value="${esc(item.code)}" ${item.code === course.code ? 'selected' : ''}>${esc(item.code)} · ${esc(item.name)}</option>`).join('')}</select></label>
@@ -145,6 +151,18 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
  const dialog = root.querySelector('.practice-import');
  root.querySelector('[data-practice-week]').onchange = event => select(course.code, Number(event.target.value));
  root.querySelector('[data-practice-import]').onclick = openImport;
+ const options = root.querySelector('.practice-options');
+ const removeButton = options.querySelector('[data-remove-question]');
+ options.onfocusout = event => {
+  if (!options.contains(event.relatedTarget)) options.open = false;
+ };
+ options.onkeydown = event => {
+  if (event.key === 'Escape' && options.open) {
+   event.preventDefault();
+   options.open = false;
+   options.querySelector('summary').focus();
+  }
+ };
  let showAll = false;
  let activeId;
  let lastRemoved;
@@ -189,6 +207,8 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
   const queue = showAll ? questions : due;
   const active = Math.max(0, queue.findIndex(({ id }) => id === activeId));
   const question = queue[active];
+  options.open = false;
+  options.hidden = !question;
   activeId = question?.id;
   const mastered = questions.filter(({ id }) => reviews.get(id)?.successes === 3).length;
   body.innerHTML = `<div class="practice-status">
@@ -228,10 +248,7 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
   const label = masteryLabel(review, solved.has(question.id));
   const numericAnswer = typeof question.answer === 'number';
   panel.innerHTML = `<article class="card practice-card">
-    <div class="practice-question-meta">
-     <div class="eyebrow">QUESTION ${active + 1} OF ${queue.length} <span class="practice-mastery" data-mastery="${label}">${label}</span></div>
-     <button type="button" class="practice-quiet" data-remove-question>Remove question</button>
-    </div>
+    <div class="eyebrow">QUESTION ${active + 1} OF ${queue.length} <span class="practice-mastery" data-mastery="${label}">${label}</span></div>
     <h2 tabindex="-1">${esc(question.topic || 'Question ' + (active + 1))}</h2>
     <p class="practice-prompt">${esc(question.prompt)}</p>
     ${isDue ? '' : `<p class="practice-next-review">Next review ${formatReviewDate(review.due)}.</p>`}
@@ -255,7 +272,7 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
   function nextQuestionId() {
    return queue[active + 1]?.id ?? queue[0]?.id;
   }
-  panel.querySelector('[data-remove-question]').onclick = () => {
+  removeButton.onclick = () => {
    removed.add(question.id);
    lastRemoved = question.id;
    updatePractice({ removed: [...removed] });
