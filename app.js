@@ -1,3 +1,4 @@
+import { practiceQuestions, practiceWeeks, renderPractice } from './practice.js';
 import { durationLabel, pendingStudyBlocks, readStudyProgress, weeklyBlockProgress } from './study-progress.js';
 import { baseTerm, blankTerm, courseCodePattern, isTermId, makeWorkspace, nextTerm, statuses, termLabel, validTerm, validWorkspace } from './workspace.js';
 
@@ -18,6 +19,7 @@ const shortDate = new Intl.DateTimeFormat('en-AU', { timeZone: 'UTC', day: 'nume
 const dayMillis = 86_400_000;
 const termStart = Date.parse('2026-09-14');
 const calendarRoot = $('#study-calendar');
+const practiceRoot = $('#practice-content');
 const courseNav = $('#side-courses');
 const weeklyPanel = $('#weekly-panel');
 const taskPanels = { tasks: $('#tasks-panel'), deadlines: $('#deadlines-panel') };
@@ -29,6 +31,7 @@ let activeTerm;
 let linkedWeeks;
 let studyProgress;
 let calendarJump;
+let practiceWeek;
 let course;
 let view = 'overview';
 let expandedCourse;
@@ -137,7 +140,7 @@ function setMarkup(element, html) {
 
 const courseSections = { weekly: 'weeks', tasks: 'assessments', info: 'info' };
 const sectionLabels = { weekly: 'Weekly checklist', tasks: 'Assessments & labs', info: 'Course info & links' };
-const pageNames = { overview: 'Overview', calendar: 'Study Calendar', deadlines: 'Deadlines' };
+const pageNames = { overview: 'Overview', calendar: 'Study Calendar', practice: 'Practice', deadlines: 'Deadlines' };
 
 function render() {
  const courseOpen = Object.hasOwn(courseSections, view);
@@ -147,6 +150,7 @@ function render() {
  $('#course-area').hidden = !state.courses.length;
  $('#deadlines-content').hidden = view !== 'deadlines';
  calendarRoot.hidden = !calendarOpen;
+ practiceRoot.hidden = view !== 'practice';
 
  for (const button of $$('.workspace-nav [data-view]')) {
   const active = button.dataset.view === (overviewOpen ? 'overview' : view);
@@ -175,6 +179,10 @@ function render() {
  renderCourseNav();
 
  if (calendarOpen) showCalendar(tasks, date);
+ else if (view === 'practice') renderPractice(practiceRoot, {
+  state, course: current(), week: practiceWeek, starter: activeTerm === baseTerm, escape: esc, save,
+  select: (code, week) => openView('practice', code, activeTerm, { week, keepPosition: true }),
+ });
  else if (overviewOpen) {
   renderOverview(tasks, open, due, date);
   if (course) renderCourseArea(courseOpen ? view : 'weekly');
@@ -349,7 +357,9 @@ function renderWeeks() {
   <div class="table-scroll"><table>
    <thead><tr><th>Week</th><th>Topics & notes</th><th>Status</th><th><span class="sr-only">Edit</span></th></tr></thead>
    <tbody>${weeks.map(week => `<tr class="${week.status === 'Done' ? 'done-row' : week.status === 'N/A' ? 'na-row' : ''}">
-     <td class="week-cell"><span class="week-name">Week ${week.week}</span><span class="week-date">${dateText(week.date)}</span>${week.week === weekNumber ? '<span class="current-tag">THIS WEEK</span>' : ''}</td>
+     <td class="week-cell"><span class="week-name">Week ${week.week}</span><span class="week-date">${dateText(week.date)}</span>
+      ${practiceQuestions(state, selected.code, week.week, activeTerm === baseTerm).length
+       ? `<a class="week-practice-link" href="${routeHash('practice', selected.code, activeTerm, week.week)}">Practise<span class="sr-only"> Week ${week.week}</span></a>` : ''}${week.week === weekNumber ? '<span class="current-tag">THIS WEEK</span>' : ''}</td>
      <td class="topic">${esc(week.title)}${week.notes ? `<span class="row-notes">${esc(week.notes)}</span>` : ''}
       ${calendarWeekNote(week, selected.code)}</td>
      <td><div class="status-wrap">${week.status === 'N/A' ? '' : quickCheck(week, 'weeks', selected.code)}${statusSelect(week, 'weeks', selected.code)}</div></td>
@@ -618,11 +628,12 @@ function showCourseEditor() {
  });
 }
 
-function routeHash(nextView, nextCourse, term) {
+function routeHash(nextView, nextCourse, term, week) {
  const prefix = term === baseTerm ? '' : 'term/' + term;
  const destination = Object.hasOwn(courseSections, nextView)
   ? 'course/' + nextCourse.toLowerCase() + '/' + courseSections[nextView]
-  : nextView === 'calendar' ? 'study-calendar' : nextView === 'deadlines' ? 'deadlines' : '';
+  : nextView === 'calendar' ? 'study-calendar' : nextView === 'deadlines' ? 'deadlines'
+  : nextView === 'practice' ? (nextCourse && week ? 'practice/' + nextCourse.toLowerCase() + '/' + week : 'practice') : '';
  const path = [prefix, destination].filter(Boolean).join('/');
  return path ? '#' + path : '';
 }
@@ -642,6 +653,10 @@ function readRoute() {
  }
  if (path === 'study-calendar') return { view: 'calendar', term };
  if (path === 'deadlines') return { view: 'deadlines', term };
+ const practice = path.match(/^practice\/([a-z]{4}\d{4})\/(\d{1,2})$/);
+ if (path === 'practice' || practice) {
+  return { view: 'practice', term, course: practice?.[1].toUpperCase(), week: Number(practice?.[2]) };
+ }
  const parts = path.match(/^course\/([a-z]{4}\d{4})\/(weeks|assessments|info)$/);
  const code = parts?.[1].toUpperCase();
  if (code && workspace.terms[term].courses.some(item => item.code === code)) {
@@ -651,7 +666,16 @@ function readRoute() {
  return { view: 'overview', term };
 }
 
-function applyRoute(nextView, nextCourse, nextTermId) {
+function practiceSelection(term, requestedCourse, requestedWeek) {
+ const courses = workspace.terms[term].courses;
+ const selected = courses.find(item => item.code === requestedCourse)
+  ?? (term === baseTerm ? courses.find(item => item.code === 'ENGG2500') : undefined)
+  ?? courses[0];
+ const weeks = practiceWeeks(selected);
+ return { code: selected?.code, week: weeks.includes(requestedWeek) ? requestedWeek : weeks[0] };
+}
+
+function applyRoute(nextView, nextCourse, nextTermId, week) {
  const termChanged = activeTerm !== nextTermId;
  const previousCourse = course;
  activeTerm = nextTermId;
@@ -659,7 +683,11 @@ function applyRoute(nextView, nextCourse, nextTermId) {
  view = nextView;
  if (view !== 'calendar' || termChanged) calendarJump = undefined;
  const retainedCourse = !termChanged && state.courses.some(item => item.code === course) ? course : undefined;
- course = nextCourse ?? retainedCourse ?? state.courses[0]?.code;
+ if (nextView === 'practice') {
+  const selection = practiceSelection(activeTerm, nextCourse, week);
+  course = selection.code;
+  practiceWeek = selection.week;
+ } else course = nextCourse ?? retainedCourse ?? state.courses[0]?.code;
  if (termChanged) {
   expandedCourse = undefined;
   taskFilters.deadlines = { filter: 'outstanding', query: '' };
@@ -672,10 +700,15 @@ function applyRoute(nextView, nextCourse, nextTermId) {
  refreshChecklist();
 }
 
-function setRoute(nextView, nextCourse, nextTermId = activeTerm) {
- const hash = routeHash(nextView, nextCourse, nextTermId);
+function setRoute(nextView, nextCourse, nextTermId = activeTerm, week) {
+ if (nextView === 'practice') {
+  const selection = practiceSelection(nextTermId, nextCourse, week);
+  nextCourse = selection.code;
+  week = selection.week;
+ }
+ const hash = routeHash(nextView, nextCourse, nextTermId, week);
  if (location.hash !== hash) history.pushState(null, '', hash || location.pathname + location.search);
- applyRoute(nextView, nextCourse, nextTermId);
+ applyRoute(nextView, nextCourse, nextTermId, week);
 }
 
 function scrollToView({ smooth = true, focus = false, keepPosition = false } = {}) {
@@ -691,7 +724,7 @@ function scrollToView({ smooth = true, focus = false, keepPosition = false } = {
 }
 
 function openView(nextView, nextCourse, nextTermId, options) {
- setRoute(nextView, nextCourse, nextTermId);
+ setRoute(nextView, nextCourse, nextTermId, options?.week);
  render();
  scrollToView(options);
 }
@@ -699,7 +732,7 @@ function openView(nextView, nextCourse, nextTermId, options) {
 history.scrollRestoration = 'manual';
 window.addEventListener('hashchange', () => {
  const next = readRoute();
- applyRoute(next.view, next.course, next.term);
+ applyRoute(next.view, next.course, next.term, next.week);
  render();
  scrollToView();
 });
@@ -783,6 +816,6 @@ $('#backup-file').onchange = async event => {
 };
 
 const initialRoute = readRoute();
-applyRoute(initialRoute.view, initialRoute.course, initialRoute.term);
+applyRoute(initialRoute.view, initialRoute.course, initialRoute.term, initialRoute.week);
 render();
 if (Object.hasOwn(courseSections, view)) scrollToView({ smooth: false });
