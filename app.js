@@ -10,6 +10,55 @@ const LEGACY_KEY = 'nick-study-desk-v1';
 const KEY = 'nick-study-desk-workspace-v2';
 const courseColors = { CVEN3101: '#729783', CVEN3202: '#9988b3', ENGG2500: '#b89964' };
 const courseMaterials = {
+ CVEN3101: [
+  { title: 'Send first', items: [
+   ['final-instructions', 'Latest final exam notice or Moodle announcement (if posted)'],
+   ['formula-sheet', 'Separate final exam formula sheet (if posted)'],
+   ['permitted-aids', 'Separate permitted-aids instructions (if posted)'],
+   ['exam-format-update', 'Separate exam format update (if posted)'],
+   ['week-5-slides', 'Week 5 slides · Contract Management'],
+   ['week-7-slides', 'Week 7 slides · Conceptual Cost Estimation'],
+   ['week-8-slides', 'Week 8 slides · Detailed Cost Estimation, Earthwork and Foundations'],
+   ['week-9-slides', 'Week 9 slides · Construction Safety and Quality Management'],
+   ['week-5-workshop-questions', 'Week 5 workshop questions'],
+   ['week-5-workshop-solutions', 'Week 5 workshop worked solutions'],
+   ['week-7-workshop-questions', 'Week 7 workshop questions'],
+   ['week-7-workshop-solutions', 'Week 7 workshop worked solutions'],
+   ['week-8-workshop-questions', 'Week 8 workshop questions'],
+   ['week-8-workshop-solutions', 'Week 8 workshop worked solutions'],
+   ['week-9-workshop-questions', 'Week 9 workshop questions'],
+   ['week-9-workshop-solutions', 'Week 9 workshop worked solutions'],
+  ] },
+  { title: 'Past or sample final (if available)', items: [
+   ['sample-final', 'One CVEN3101 past or sample final paper'],
+   ['sample-final-solutions', 'Answer key or worked solutions for that paper'],
+  ] },
+  { title: 'Weeks 5, 7, 8 and 9 lecture transcripts', items: [
+   ['week-5-lecture-1', 'Week 5 Lecture 1 transcript'],
+   ['week-7-lecture-1', 'Week 7 Lecture 1 transcript'],
+   ['week-7-lecture-2', 'Week 7 Lecture 2 transcript'],
+   ['week-8-lecture-1', 'Week 8 Lecture 1 transcript'],
+   ['week-8-lecture-2', 'Week 8 Lecture 2 transcript'],
+   ['week-9-lecture-1', 'Week 9 Lecture 1 transcript'],
+   ['week-9-lecture-2', 'Week 9 Lecture 2 transcript'],
+  ] },
+  { title: 'Week 10 materials · 16–22 Nov (as posted)', items: [
+   ['week-10-slides', 'Week 10 slides · Engineering Ethics and Risks'],
+   ['week-10-lecture-1', 'Week 10 Lecture 1 transcript'],
+   ['week-10-lecture-2', 'Week 10 Lecture 2 transcript'],
+   ['week-10-workshop-questions', 'Week 10 workshop questions'],
+   ['week-10-workshop-solutions', 'Week 10 workshop worked solutions'],
+  ] },
+  { title: 'Workshop recordings and assignment feedback (if available)', items: [
+   ['week-5-workshop-transcript', 'Week 5 workshop transcript or recording'],
+   ['week-7-workshop-transcript', 'Week 7 workshop transcript or recording'],
+   ['week-8-workshop-transcript', 'Week 8 workshop transcript or recording'],
+   ['week-9-workshop-transcript', 'Week 9 workshop transcript or recording'],
+   ['week-10-workshop-transcript', 'Week 10 workshop transcript or recording'],
+   ['part-a-feedback', 'Part A marked feedback (when returned)'],
+   ['part-b-feedback', 'Part B marked feedback (when returned)'],
+  ] },
+ ],
  ENGG2500: [{ items: [
   ['week-9-transcripts', 'Week 9 lecture transcripts'],
   ['final-instructions', '2026 final exam instructions (if available)'],
