@@ -9,15 +9,60 @@ const esc = value => String(value ?? '').replace(/[&<>"']/g, character => HTML_E
 const LEGACY_KEY = 'nick-study-desk-v1';
 const KEY = 'nick-study-desk-workspace-v2';
 const courseColors = { CVEN3101: '#729783', CVEN3202: '#9988b3', ENGG2500: '#b89964' };
-const engg2500Materials = [
- ['week-9-transcripts', 'Week 9 lecture transcripts'],
- ['final-instructions', '2026 final exam instructions (if available)'],
- ['week-10-slides', 'Week 10 slides'],
- ['week-10-transcripts', 'Week 10 lecture transcripts'],
- ['week-10-workshop', 'Week 10 workshop'],
- ['assignment-4', 'Online Assignment 4'],
- ['assignment-5', 'Online Assignment 5'],
-];
+const courseMaterials = {
+ ENGG2500: [{ items: [
+  ['week-9-transcripts', 'Week 9 lecture transcripts'],
+  ['final-instructions', '2026 final exam instructions (if available)'],
+  ['week-10-slides', 'Week 10 slides'],
+  ['week-10-transcripts', 'Week 10 lecture transcripts'],
+  ['week-10-workshop', 'Week 10 workshop'],
+  ['assignment-4', 'Online Assignment 4'],
+  ['assignment-5', 'Online Assignment 5'],
+ ] }],
+ CVEN3202: [
+  { title: 'Send first', items: [
+   ['final-instructions', 'Latest final exam announcement or briefing'],
+   ['equation-sheet', 'Final exam equation sheet PDF (if posted)'],
+   ['week-7-slides', 'Week 7 slides · rate of consolidation and shear strength'],
+   ['week-8-slides', 'Week 8 slides · shear strength and direct shear'],
+   ['week-9-slides', 'Week 9 slides · triaxial testing and stress paths'],
+   ['workshop-6-questions', 'Workshop 6 (Week 8) question sheet'],
+   ['workshop-6-solutions', 'Workshop 6 worked solutions'],
+   ['workshop-7-questions', 'Workshop 7 (Week 9) question sheet'],
+   ['workshop-7-solutions', 'Workshop 7 worked solutions'],
+  ] },
+  { title: 'Past or sample final (if available)', items: [
+   ['sample-final', 'One official past or sample final paper'],
+   ['sample-final-solutions', 'Worked solutions or marking guide for that paper'],
+  ] },
+  { title: 'Weeks 7–9 lecture transcripts', items: [
+   ['transcript-oct-26', 'Week 7 lecture transcript · 26 Oct'],
+   ['transcript-oct-29', 'Week 7 lecture transcript · 29 Oct'],
+   ['transcript-nov-02', 'Week 8 lecture transcript · 2 Nov'],
+   ['transcript-nov-05', 'Week 8 lecture transcript · 5 Nov'],
+   ['transcript-nov-09', 'Week 9 lecture transcript · 9 Nov'],
+   ['transcript-nov-12', 'Week 9 lecture transcript · 12 Nov (when available)'],
+  ] },
+  { title: 'Upcoming materials (when available)', items: [
+   ['week-10-slides', 'Week 10 slides · slope stability'],
+   ['transcript-nov-16', 'Week 10 lecture transcript · 16 Nov (if recorded)'],
+   ['transcript-nov-19', 'Week 10 lecture transcript · 19 Nov (if recorded)'],
+   ['workshop-8-questions', 'Workshop 8 question sheet'],
+   ['workshop-8-solutions', 'Workshop 8 worked solutions'],
+   ['workshop-9-questions', 'Workshop 9 question sheet'],
+   ['workshop-9-solutions', 'Workshop 9 worked solutions'],
+   ['final-briefing-update', 'Last-lecture exam briefing (if it adds new details)'],
+  ] },
+  { title: 'Workshop transcripts and feedback (if available)', items: [
+   ['workshop-6-transcript', 'Workshop 6 transcript'],
+   ['workshop-7-transcript', 'Workshop 7 transcript'],
+   ['workshop-8-transcript', 'Workshop 8 transcript'],
+   ['workshop-9-transcript', 'Workshop 9 transcript'],
+   ['marked-quizzes', 'Marked quiz submissions with feedback still to share'],
+   ['marked-labs', 'Marked lab submissions with feedback still to share'],
+  ] },
+ ],
+};
 const sentMaterials = course => new Set(Array.isArray(course.sentMaterials) ? course.sentMaterials : []);
 const sydneyDate = new Intl.DateTimeFormat('en-CA', {
  timeZone: 'Australia/Sydney', year: 'numeric', month: '2-digit', day: '2-digit',
@@ -473,10 +518,24 @@ function renderTaskResults(kind) {
    <div class="task-list">${items.map(task => taskCard(task, task.code)).join('')}</div>`).join('')
   || '<div class="card empty">No matching tasks.</div>');
 }
+function materialsChecklist(groups) {
+ return `<section class="card" aria-labelledby="materials-to-send-title">
+  <h4 id="materials-to-send-title">Materials to send</h4>
+  ${groups.map(({ title, items }, index) => {
+   const list = `<ul class="materials-checklist">${items.map(([id, label]) => `<li>
+    <label><input type="checkbox" data-send-material="${esc(id)}"><span>${esc(label)}</span></label>
+   </li>`).join('')}</ul>`;
+   return title ? `<details class="materials-group" ${index === 0 ? 'open' : ''}>
+    <summary>${esc(title)}</summary>${list}
+   </details>` : list;
+  }).join('')}
+ </section>`;
+}
+
 function renderInfo() {
  const selected = current();
  const panel = $('#info-panel');
- const showMaterials = activeTerm === baseTerm && selected.code === 'ENGG2500';
+ const materials = activeTerm === baseTerm && courseMaterials[selected.code];
  setMarkup(panel, `<div class="info-grid">
   <div class="info-stack">
    <div class="card">
@@ -508,15 +567,10 @@ function renderInfo() {
       : 'Dates and requirements are unknown until you add the course materials.'}</p>
     </details>
    </div>
-   ${showMaterials ? `<section class="card" aria-labelledby="materials-to-send-title">
-    <h4 id="materials-to-send-title">Materials to send</h4>
-    <ul class="materials-checklist">${engg2500Materials.map(([id, title]) => `<li>
-     <label><input type="checkbox" data-send-material="${id}"><span>${title}</span></label>
-    </li>`).join('')}</ul>
-   </section>` : ''}
+   ${materials ? materialsChecklist(materials) : ''}
   </div>
  </div>`);
- if (showMaterials) {
+ if (materials) {
   const sent = sentMaterials(selected);
   for (const checkbox of panel.querySelectorAll('[data-send-material]')) {
    checkbox.checked = sent.has(checkbox.dataset.sendMaterial);
