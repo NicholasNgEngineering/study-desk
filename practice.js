@@ -25,12 +25,23 @@ export function practiceWeeks(course) {
  return course?.weeks.filter(week => week.status !== 'N/A').map(({ week }) => week) ?? [];
 }
 
+const minParts = 2;
+const maxParts = 12;
+const shortText = (value, limit) => typeof value === 'string' && value.length <= limit;
+const hasLabel = part => shortText(part?.label, 100) && part.label.trim();
+const validAnswer = ({ answer, tolerance }) => Number.isFinite(answer)
+ ? Number.isFinite(tolerance) && tolerance >= 0
+ : Array.isArray(answer) && answer.length > 0 && answer.length <= 15
+  && answer.every(text => shortText(text, 150) && text.trim());
+const validParts = parts => Array.isArray(parts) && parts.length >= minParts && parts.length <= maxParts;
+
 export function practiceQuestions(state, code, week, starter, includeRemoved = false) {
  const imported = state.practice?.sets?.[code + '/' + week];
  const base = starter && code === 'ENGG2500' && week === 1 ? fluidsWeekOne : [];
  const questions = base.concat(Array.isArray(imported) ? imported.filter(question =>
   typeof question?.id === 'string' && typeof question.prompt === 'string' &&
-  (Number.isFinite(question.answer) || Array.isArray(question.answer) && question.answer.every(text => typeof text === 'string'))) : []);
+  (question.parts == null ? validAnswer(question)
+   : validParts(question.parts) && question.parts.every(part => hasLabel(part) && validAnswer(part)))) : []);
  if (includeRemoved || !Array.isArray(state.practice?.removed)) return questions;
  const removed = new Set(state.practice.removed);
  return questions.filter(question => !removed.has(question.id));
@@ -45,22 +56,35 @@ export function parsePracticePack(raw) {
  if (!Array.isArray(input) || !input.length || input.length > 60) throw Error('Paste an array of 1 to 60 questions.');
  return input.map((item, index) => {
   const fail = message => { throw Error('Question ' + (index + 1) + '. ' + message); };
-  const { topic, prompt, unit, answer, tolerance, working } = item ?? {};
+  const { topic, prompt, working, parts } = item ?? {};
   if (typeof prompt !== 'string' || !prompt.trim() || prompt.length > 4000
    || typeof working !== 'string' || !working.trim() || working.length > 4000) {
    fail('Include a question prompt and worked solution, each under 4,000 characters.');
   }
-  if ((topic != null && (typeof topic !== 'string' || topic.length > 100))
-   || (unit != null && (typeof unit !== 'string' || unit.length > 40))) fail('Use short text for the topic and unit.');
-  if (typeof answer === 'number' && Number.isFinite(answer)) {
-   if (typeof tolerance !== 'number' || !Number.isFinite(tolerance) || tolerance < 0) fail('Include a numeric tolerance of zero or more.');
-  } else if (!Array.isArray(answer) || !answer.length || answer.length > 15
-   || !answer.every(text => typeof text === 'string' && text.trim() && text.length <= 150)) {
-   fail('Use a number or an array of accepted short answers.');
-  }
-  return { topic: topic?.trim() || '', prompt: prompt.trim(), unit: unit?.trim() || '',
-   answer, tolerance: typeof answer === 'number' ? tolerance : 0, working: working.trim() };
+  if (topic != null && !shortText(topic, 100)) fail('Use short text for the topic.');
+  const question = { topic: topic?.trim() || '', prompt: prompt.trim(), working: working.trim() };
+  if (parts == null) return { ...question, ...parseAnswer(item, fail) };
+  if (!validParts(parts)) fail('Include ' + minParts + ' to ' + maxParts + ' parts.');
+  question.parts = parts.map((part, partIndex) => {
+   const failPart = message => fail('Part ' + (partIndex + 1) + '. ' + message);
+   if (!hasLabel(part)) failPart('Include a short label for this answer box.');
+   return { label: part.label.trim(), ...parseAnswer(part, failPart) };
+  });
+  const labels = new Set(question.parts.map(part => normalize(part.label)));
+  if (labels.size !== question.parts.length) fail('Give each part a different label.');
+  return question;
  });
+}
+
+function parseAnswer(spec, fail) {
+ const { unit, answer, tolerance } = spec;
+ if (unit != null && !shortText(unit, 40)) fail('Use short text for the unit.');
+ if (!validAnswer(spec)) {
+  fail(Number.isFinite(answer)
+   ? 'Include a numeric tolerance of zero or more.'
+   : 'Use a number or an array of accepted short answers.');
+ }
+ return { unit: unit?.trim() || '', answer, tolerance: Number.isFinite(answer) ? tolerance : 0 };
 }
 
 const normalize = text => text.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -79,9 +103,44 @@ export function gradePracticeAnswer(question, response) {
  return Math.abs(actual - question.answer) <= question.tolerance + slack ? 'correct' : 'incorrect';
 }
 
-const promptText = (code, week) => `Make a Study Desk question set for ${code}, Week ${week}, using the topics and questions we covered in this chat. Check the answers and units. Return only a JSON array. For numeric questions, use an answer number and an absolute tolerance in the stated unit. For short text, use an array of accepted answers. Give a worked solution for each question.
-Example:
-[{"topic":"Density","prompt":"A liquid fills a 2 m³ tank and has a mass of 1600 kg. What is its density?","unit":"kg/m³","answer":800,"tolerance":0.5,"working":"Density = mass ÷ volume = 1600 ÷ 2 = 800 kg/m³."}]`;
+const promptText = (code, week) => `Make a Study Desk practice set for ${code}, Week ${week}, using the topics and questions we covered in this chat. Return only a JSON array of 1 to 60 questions.
+
+Keep the parts of each original question together. When several answers use the same scenario or given data, write the setup once in "prompt" and put the requested answers in a "parts" array (2 to 12 parts). Each part creates its own answer box. Keep the original order and give each part a distinct label that says what to calculate or provide. Use the single-answer format for standalone questions with one answer.
+
+Use an answer number and an absolute tolerance in the displayed unit for numeric answers. Use an array of accepted strings for short text answers. Use an empty unit for dimensionless answers. Verify the answers, units and rounding. Put the worked solution for all parts in the question's "working" field.
+
+Example with both formats:
+[
+ {"topic":"Fluid properties","prompt":"A container holds 3.0 L of oil with a mass of 2.55 kg. Use water density 1000 kg/m³ and g = 9.81 m/s². Find the four properties below.","parts":[
+  {"label":"Density","unit":"kg/m³","answer":850,"tolerance":0.5},
+  {"label":"Specific gravity","unit":"","answer":0.85,"tolerance":0.001},
+  {"label":"Specific weight","unit":"N/m³","answer":8338.5,"tolerance":0.5},
+  {"label":"Specific volume (4 significant figures)","unit":"m³/kg","answer":0.00117647,"tolerance":0.0000005}
+ ],"working":"Convert 3.0 L to 0.0030 m³. Density = 2.55 ÷ 0.0030 = 850 kg/m³. Specific gravity = 850 ÷ 1000 = 0.85. Specific weight = 850 × 9.81 = 8338.5 N/m³. Specific volume = 1 ÷ 850 = 0.001176 m³/kg to four significant figures."},
+ {"topic":"Pressure","prompt":"The gauge pressure is 20 kPa and atmospheric pressure is 101.3 kPa. Find the absolute pressure.","unit":"kPa","answer":121.3,"tolerance":0.05,"working":"Absolute pressure = 101.3 + 20 = 121.3 kPa."}
+]`;
+
+const questionKey = question => JSON.stringify([question.prompt, question.parts?.map(part => normalize(part.label))]);
+
+function answerFields(question, esc) {
+ const input = (spec, id, attributes = '') => `<input id="${id}" type="text"
+  ${Number.isFinite(spec.answer) ? 'inputmode="decimal"' : ''} autocomplete="off" maxlength="180" ${attributes}>`;
+ const unit = spec => spec.unit ? ' (' + esc(spec.unit) + ')' : '';
+ if (!question.parts) return `
+  <label class="field" for="practice-answer">Your answer${unit(question)}</label>
+  <div class="practice-answer">${input(question, 'practice-answer', 'name="answer" required')}
+   <button type="submit" class="primary">Check answer</button>
+  </div>`;
+ return `<div class="practice-parts">${question.parts.map((part, index) => {
+  const id = 'practice-answer-' + index;
+  return `<div class="practice-part">
+   <label class="field" for="${id}">${String.fromCharCode(65 + index)}. ${esc(part.label)}${unit(part)}</label>
+   ${input(part, id, 'aria-describedby="' + id + '-feedback"')}
+   <span class="practice-part-feedback" id="${id}-feedback" hidden></span>
+  </div>`;
+ }).join('')}</div>
+ <button type="submit" class="primary">Check answers</button>`;
+}
 
 const reviewIntervals = [1, 3, 7, 14, 30, 60, 90];
 const reviewRatings = ['Again', 'Hard', 'Good', 'Easy'];
@@ -246,19 +305,14 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
   const review = reviews.get(question.id);
   const isDue = !review || review.due <= date;
   const label = masteryLabel(review, solved.has(question.id));
-  const numericAnswer = typeof question.answer === 'number';
+  const parts = question.parts ?? [question];
+  const multi = Boolean(question.parts);
   panel.innerHTML = `<article class="card practice-card">
     <div class="eyebrow">QUESTION ${active + 1} OF ${queue.length} <span class="practice-mastery" data-mastery="${label}">${label}</span></div>
     <h2 tabindex="-1">${esc(question.topic || 'Question ' + (active + 1))}</h2>
     <p class="practice-prompt">${esc(question.prompt)}</p>
     ${isDue ? '' : `<p class="practice-next-review">Next review ${formatReviewDate(review.due)}.</p>`}
-    <form>
-     <label class="field" for="practice-answer">Your answer${question.unit ? ' (' + esc(question.unit) + ')' : ''}</label>
-     <div class="practice-answer">
-      <input id="practice-answer" name="answer" type="text" ${numericAnswer ? 'inputmode="decimal"' : ''} autocomplete="off" maxlength="180" required>
-      <button type="submit" class="primary">Check answer</button>
-     </div>
-    </form>
+    <form>${answerFields(question, esc)}</form>
     <p class="practice-feedback" role="status" hidden></p>
     <details class="practice-working" hidden><summary>Show working</summary><p>${esc(question.working)}</p></details>
     ${isDue ? `<fieldset class="practice-ratings" hidden><legend>How did it go?</legend>${reviewRatings.map(rating => {
@@ -281,21 +335,38 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
   };
 
   const ratings = panel.querySelector('.practice-ratings');
+  const form = panel.querySelector('form');
+  const inputs = [...form.querySelectorAll('input')];
+  const partFeedback = [...form.querySelectorAll('.practice-part-feedback')];
+  const feedback = panel.querySelector('.practice-feedback');
+  const partMessages = {
+   correct: 'Correct.', incorrect: 'Incorrect.', empty: 'Enter an answer.',
+   number: 'Enter a number in the requested unit, such as 0.003 or 3e-3.',
+  };
   let missed = false;
-  panel.querySelector('form').onsubmit = event => {
+  form.onsubmit = event => {
    event.preventDefault();
-   const answer = panel.querySelector('#practice-answer');
-   const result = gradePracticeAnswer(question, answer.value);
-   const feedback = panel.querySelector('.practice-feedback');
+   const results = parts.map((part, index) => gradePracticeAnswer(part, inputs[index].value));
+   const correct = results.filter(result => result === 'correct').length;
+   const allCorrect = correct === parts.length;
+   const answered = results.every(result => result === 'correct' || result === 'incorrect');
+   if (results.includes('incorrect')) missed = true;
+   partFeedback.forEach((message, index) => {
+    const result = results[index];
+    message.textContent = partMessages[result];
+    message.dataset.result = result;
+    message.hidden = false;
+    inputs[index].setAttribute('aria-invalid', String(result !== 'correct'));
+   });
+   const summary = multi ? correct + ' of ' + parts.length + ' correct.'
+    : allCorrect && missed && isDue ? 'Correct on retry.' : partMessages[results[0]];
+   let guidance = '';
+   if (multi && !answered) guidance = ' Complete every answer box to finish checking.';
+   else if (answered && missed && isDue) guidance = ' Choose Again to review it later today.';
+   else if (answered && !allCorrect) guidance = ' Try again or check the working.';
+   feedback.dataset.result = allCorrect ? 'correct' : 'incorrect';
+   feedback.textContent = summary + guidance;
    feedback.hidden = false;
-   feedback.dataset.result = result;
-   if (result === 'incorrect') missed = true;
-   feedback.textContent = {
-    correct: missed && isDue ? 'Correct on retry. Choose Again to review it later today.' : 'Correct.',
-    incorrect: isDue ? 'Incorrect. Choose Again to review it later today.' : 'Incorrect. Try again or check the working.',
-    empty: 'Enter an answer.', number: 'Enter a number in the requested unit, such as 0.003 or 3e-3.',
-   }[result];
-   const answered = result === 'correct' || result === 'incorrect';
    if (answered) panel.querySelector('.practice-working').hidden = false;
    if (ratings) {
     ratings.hidden = !answered;
@@ -303,10 +374,18 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
      button.disabled = missed && button.dataset.practiceRating !== 'Again';
     }
    }
-   if (result === 'correct' && !solved.has(question.id)) {
+   if (allCorrect && !solved.has(question.id)) {
     solved.add(question.id);
     updatePractice({ solved: [...solved] });
    }
+  };
+  form.oninput = event => {
+   const input = event.target;
+   const message = partFeedback[inputs.indexOf(input)];
+   if (message) message.hidden = true;
+   input.removeAttribute('aria-invalid');
+   feedback.hidden = true;
+   if (ratings) ratings.hidden = true;
   };
   for (const button of panel.querySelectorAll('[data-practice-rating]')) button.onclick = () => {
    const next = nextPracticeReview(review, button.dataset.practiceRating, today());
@@ -345,11 +424,12 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
    event.preventDefault();
    try {
     const parsed = parsePracticePack(new FormData(event.currentTarget).get('pack'));
-    const existing = new Set(allQuestions().map(question => question.prompt));
+    const existing = new Set(allQuestions().map(questionKey));
     const added = [];
     for (const question of parsed) {
-     if (existing.has(question.prompt)) continue;
-     existing.add(question.prompt);
+     const signature = questionKey(question);
+     if (existing.has(signature)) continue;
+     existing.add(signature);
      added.push({ ...question, id: crypto.randomUUID() });
     }
     if (!added.length) throw Error('These questions are already in this week. You can restore any that you removed.');
