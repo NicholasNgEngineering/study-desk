@@ -25,12 +25,15 @@ export function practiceWeeks(course) {
  return course?.weeks.filter(week => week.status !== 'N/A').map(({ week }) => week) ?? [];
 }
 
-export function practiceQuestions(state, code, week, starter) {
+export function practiceQuestions(state, code, week, starter, includeRemoved = false) {
  const imported = state.practice?.sets?.[code + '/' + week];
  const base = starter && code === 'ENGG2500' && week === 1 ? fluidsWeekOne : [];
- return base.concat(Array.isArray(imported) ? imported.filter(question =>
+ const questions = base.concat(Array.isArray(imported) ? imported.filter(question =>
   typeof question?.id === 'string' && typeof question.prompt === 'string' &&
   (Number.isFinite(question.answer) || Array.isArray(question.answer) && question.answer.every(text => typeof text === 'string'))) : []);
+ if (includeRemoved || !Array.isArray(state.practice?.removed)) return questions;
+ const removed = new Set(state.practice.removed);
+ return questions.filter(question => !removed.has(question.id));
 }
 
 export function parsePracticePack(raw) {
@@ -80,11 +83,49 @@ const promptText = (code, week) => `Make a Study Desk question set for ${code}, 
 Example:
 [{"topic":"Density","prompt":"A liquid fills a 2 m³ tank and has a mass of 1600 kg. What is its density?","unit":"kg/m³","answer":800,"tolerance":0.5,"working":"Density = mass ÷ volume = 1600 ÷ 2 = 800 kg/m³."}]`;
 
-export function renderPractice(root, { state, course, week, starter, escape: esc, select, save }) {
- const questions = course && week ? practiceQuestions(state, course.code, week, starter) : [];
- const solved = Array.isArray(state.practice?.solved) ? state.practice.solved : [];
- const done = new Set(solved);
+const reviewIntervals = [1, 3, 7, 14, 30, 60, 90];
+const reviewRatings = ['Again', 'Hard', 'Good', 'Easy'];
+const reviewDate = new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+const formatReviewDate = date => reviewDate.format(new Date(date + 'T00:00:00Z'));
+
+function getReview(state, id) {
+ const reviews = state.practice?.reviews;
+ const review = reviews && Object.hasOwn(reviews, id) ? reviews[id] : undefined;
+ return review && /^\d{4}-\d{2}-\d{2}$/.test(review.due)
+  && Number.isFinite(Date.parse(review.due)) && Number.isInteger(review.interval)
+  && review.interval >= 0 && review.interval <= 90 && Number.isInteger(review.successes)
+  && review.successes >= 0 && review.successes <= 3 ? review : undefined;
+}
+
+export function nextPracticeReview(previous, rating, date) {
+ const interval = previous?.interval ?? 0;
+ const successes = previous?.successes ?? 0;
+ let days = 0;
+ let nextSuccesses = 0;
+ if (rating === 'Hard') {
+  days = Math.max(1, Math.ceil(interval / 2));
+  nextSuccesses = successes;
+ } else if (rating === 'Good' || rating === 'Easy') {
+  const future = reviewIntervals.filter(value => value > interval);
+  days = (rating === 'Easy' ? future[1] : undefined) ?? future[0] ?? reviewIntervals.at(-1);
+  nextSuccesses = Math.min(3, successes + 1);
+ }
+ const due = new Date(date + 'T00:00:00Z');
+ due.setUTCDate(due.getUTCDate() + days);
+ return { due: due.toISOString().slice(0, 10), interval: days, successes: nextSuccesses };
+}
+
+function masteryLabel(review, solved) {
+ if (review?.successes === 3) return 'Mastered';
+ if (review?.successes > 0) return 'In review';
+ return review || solved ? 'Learning' : 'New';
+}
+
+export function renderPractice(root, { state, course, week, starter, escape: esc, select, save, today }) {
+ const solved = new Set(Array.isArray(state.practice?.solved) ? state.practice.solved : []);
+ const removed = new Set(Array.isArray(state.practice?.removed) ? state.practice.removed : []);
  const key = course && week ? course.code + '/' + week : '';
+ const allQuestions = () => practiceQuestions(state, course.code, week, starter, true);
  const header = `<header class="page-heading"><div><div class="eyebrow">STUDY DESK</div><h1 id="practice-title">Practice</h1></div>
   ${key ? '<button type="button" data-practice-import>Import questions</button>' : ''}</header>`;
  const pickers = course ? `<div class="practice-pickers">
@@ -104,22 +145,96 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
  const dialog = root.querySelector('.practice-import');
  root.querySelector('[data-practice-week]').onchange = event => select(course.code, Number(event.target.value));
  root.querySelector('[data-practice-import]').onclick = openImport;
- let active = 0;
+ let showAll = false;
+ let activeId;
+ let lastRemoved;
+
+ function updatePractice(changes) {
+  state.practice = { ...state.practice, ...changes };
+  save();
+ }
+
+ function restoreQuestion(id) {
+  removed.delete(id);
+  if (lastRemoved === id) lastRemoved = undefined;
+  updatePractice({ removed: [...removed] });
+  activeId = id;
+  if (getReview(state, id)?.due > today()) showAll = true;
+  questionView(true);
+ }
+
+ function openRemoved() {
+  const questions = allQuestions().filter(question => removed.has(question.id));
+  dialog.innerHTML = `<h2 id="practice-import-title">Removed questions</h2>
+   <ul class="practice-removed-list">${questions.map((question, index) => `<li>
+    <span>${esc(question.prompt)}</span>
+    <button type="button" data-restore-question="${index}">Restore</button>
+   </li>`).join('')}</ul>
+   <div class="dialog-actions"><button type="button" data-close>Close</button></div>`;
+  dialog.querySelector('[data-close]').onclick = () => dialog.close();
+  for (const button of dialog.querySelectorAll('[data-restore-question]')) button.onclick = () => {
+   dialog.close();
+   restoreQuestion(questions[Number(button.dataset.restoreQuestion)].id);
+  };
+  dialog.showModal();
+ }
 
  function questionView(focus = false) {
-  const question = questions[active];
+  const date = today();
+  const bank = allQuestions();
+  const questions = bank.filter(question => !removed.has(question.id));
+  const removedCount = bank.length - questions.length;
+  const reviews = new Map(questions.map(({ id }) => [id, getReview(state, id)]));
+  const due = questions.filter(({ id }) => !reviews.get(id) || reviews.get(id).due <= date);
+  const queue = showAll ? questions : due;
+  const active = Math.max(0, queue.findIndex(({ id }) => id === activeId));
+  const question = queue[active];
+  activeId = question?.id;
+  const mastered = questions.filter(({ id }) => reviews.get(id)?.successes === 3).length;
+  body.innerHTML = `<div class="practice-status">
+   <div class="practice-modes" aria-label="Question filter">
+    <button type="button" data-review-mode="due" aria-pressed="${!showAll}">Due today (${due.length})</button>
+    <button type="button" data-review-mode="all" aria-pressed="${showAll}">All questions (${questions.length})</button>
+   </div>
+   ${questions.length ? `<div class="practice-progress"><strong>${mastered} of ${questions.length} mastered</strong>
+    <progress aria-label="Questions mastered" max="${questions.length}" value="${mastered}"></progress></div>` : ''}
+   ${removedCount ? `<button type="button" class="practice-quiet" data-open-removed>Removed (${removedCount})</button>` : ''}
+  </div>
+  ${lastRemoved ? '<div class="practice-undo" role="status">Question removed. <button type="button" class="practice-quiet" data-undo-remove>Undo</button></div>' : ''}
+  <div class="practice-question"></div>`;
+  for (const button of body.querySelectorAll('[data-review-mode]')) button.onclick = () => {
+   const mode = button.dataset.reviewMode;
+   showAll = mode === 'all';
+   questionView();
+   body.querySelector('[data-review-mode="' + mode + '"]').focus();
+  };
+  const undo = body.querySelector('[data-undo-remove]');
+  if (undo) undo.onclick = () => restoreQuestion(lastRemoved);
+  const open = body.querySelector('[data-open-removed]');
+  if (open) open.onclick = openRemoved;
+
+  const panel = body.querySelector('.practice-question');
   if (!question) {
-   body.innerHTML = '<div class="card empty">No questions for this week yet. Use Import questions to add a set from your study chat.</div>';
+   const future = questions.map(({ id }) => reviews.get(id)?.due).filter(Boolean).sort()[0];
+   panel.innerHTML = `<div class="card empty">${questions.length
+    ? 'You’re caught up. Next review ' + formatReviewDate(future) + '.'
+    : 'No questions for this week. Import a question set to get started.'}</div>`;
+   if (focus) (undo ?? body.querySelector('[data-review-mode="all"]')).focus();
    return;
   }
+
+  const review = reviews.get(question.id);
+  const isDue = !review || review.due <= date;
+  const label = masteryLabel(review, solved.has(question.id));
   const numericAnswer = typeof question.answer === 'number';
-  const completed = questions.filter(item => done.has(item.id)).length;
-  body.innerHTML = `<div class="practice-progress"><strong data-practice-score>${completed} of ${questions.length} solved</strong>
-   <progress aria-label="Questions solved" max="${questions.length}" value="${completed}"></progress></div>
-   <article class="card practice-card">
-    <div class="eyebrow">QUESTION ${active + 1} OF ${questions.length} <span data-practice-done ${done.has(question.id) ? '' : 'hidden'}>✓ Solved</span></div>
+  panel.innerHTML = `<article class="card practice-card">
+    <div class="practice-question-meta">
+     <div class="eyebrow">QUESTION ${active + 1} OF ${queue.length} <span class="practice-mastery" data-mastery="${label}">${label}</span></div>
+     <button type="button" class="practice-quiet" data-remove-question>Remove question</button>
+    </div>
     <h2 tabindex="-1">${esc(question.topic || 'Question ' + (active + 1))}</h2>
     <p class="practice-prompt">${esc(question.prompt)}</p>
+    ${isDue ? '' : `<p class="practice-next-review">Next review ${formatReviewDate(review.due)}.</p>`}
     <form>
      <label class="field" for="practice-answer">Your answer${question.unit ? ' (' + esc(question.unit) + ')' : ''}</label>
      <div class="practice-answer">
@@ -129,33 +244,64 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
     </form>
     <p class="practice-feedback" role="status" hidden></p>
     <details class="practice-working" hidden><summary>Show working</summary><p>${esc(question.working)}</p></details>
+    ${isDue ? `<fieldset class="practice-ratings" hidden><legend>How did it go?</legend>${reviewRatings.map(rating => {
+     const { interval } = nextPracticeReview(review, rating, date);
+     return `<button type="button" data-practice-rating="${rating}">${rating}<small>${interval === 0 ? 'Today' : interval + (interval === 1 ? ' day' : ' days')}</small></button>`;
+    }).join('')}</fieldset>` : ''}
    </article>
    <div class="practice-nav"><button type="button" data-step="-1" ${active === 0 ? 'disabled' : ''}>Previous</button>
-    <button type="button" data-step="1" ${active === questions.length - 1 ? 'disabled' : ''}>Next question</button></div>`;
-  body.querySelector('form').onsubmit = event => {
-   event.preventDefault();
-   const answer = body.querySelector('#practice-answer');
-   const result = gradePracticeAnswer(question, answer.value);
-   const feedback = body.querySelector('.practice-feedback');
-   feedback.hidden = false;
-   feedback.dataset.result = result;
-   feedback.textContent = { correct: 'Correct.', incorrect: 'Incorrect. Try again or check the working.',
-    empty: 'Enter an answer.', number: 'Enter a number in the requested unit, such as 0.003 or 3e-3.' }[result];
-   if (result === 'correct' || result === 'incorrect') body.querySelector('.practice-working').hidden = false;
-   if (result === 'correct' && !done.has(question.id)) {
-    done.add(question.id);
-    state.practice = { ...state.practice, solved: [...done] };
-    save();
-    body.querySelector('[data-practice-done]').hidden = false;
-    body.querySelector('[data-practice-score]').textContent = (completed + 1) + ' of ' + questions.length + ' solved';
-    body.querySelector('progress').value = completed + 1;
-   }
-  };
-  for (const button of body.querySelectorAll('[data-step]')) button.onclick = () => {
-   active += Number(button.dataset.step);
+    <button type="button" data-step="1" ${active === queue.length - 1 ? 'disabled' : ''}>Next question</button></div>`;
+
+  function nextQuestionId() {
+   return queue[active + 1]?.id ?? queue[0]?.id;
+  }
+  panel.querySelector('[data-remove-question]').onclick = () => {
+   removed.add(question.id);
+   lastRemoved = question.id;
+   updatePractice({ removed: [...removed] });
+   activeId = nextQuestionId();
    questionView(true);
   };
-  if (focus) body.querySelector('h2').focus();
+
+  const ratings = panel.querySelector('.practice-ratings');
+  let missed = false;
+  panel.querySelector('form').onsubmit = event => {
+   event.preventDefault();
+   const answer = panel.querySelector('#practice-answer');
+   const result = gradePracticeAnswer(question, answer.value);
+   const feedback = panel.querySelector('.practice-feedback');
+   feedback.hidden = false;
+   feedback.dataset.result = result;
+   if (result === 'incorrect') missed = true;
+   feedback.textContent = {
+    correct: missed && isDue ? 'Correct on retry. Choose Again to review it later today.' : 'Correct.',
+    incorrect: isDue ? 'Incorrect. Choose Again to review it later today.' : 'Incorrect. Try again or check the working.',
+    empty: 'Enter an answer.', number: 'Enter a number in the requested unit, such as 0.003 or 3e-3.',
+   }[result];
+   const answered = result === 'correct' || result === 'incorrect';
+   if (answered) panel.querySelector('.practice-working').hidden = false;
+   if (ratings) {
+    ratings.hidden = !answered;
+    for (const button of ratings.querySelectorAll('button')) {
+     button.disabled = missed && button.dataset.practiceRating !== 'Again';
+    }
+   }
+   if (result === 'correct' && !solved.has(question.id)) {
+    solved.add(question.id);
+    updatePractice({ solved: [...solved] });
+   }
+  };
+  for (const button of panel.querySelectorAll('[data-practice-rating]')) button.onclick = () => {
+   const next = nextPracticeReview(review, button.dataset.practiceRating, today());
+   updatePractice({ reviews: { ...state.practice?.reviews, [question.id]: next } });
+   activeId = nextQuestionId();
+   questionView(true);
+  };
+  for (const button of panel.querySelectorAll('[data-step]')) button.onclick = () => {
+   activeId = queue[active + Number(button.dataset.step)].id;
+   questionView(true);
+  };
+  if (focus) panel.querySelector('h2').focus();
  }
 
  function openImport() {
@@ -182,20 +328,18 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
    event.preventDefault();
    try {
     const parsed = parsePracticePack(new FormData(event.currentTarget).get('pack'));
-    const existing = new Set(questions.map(question => question.prompt));
+    const existing = new Set(allQuestions().map(question => question.prompt));
     const added = [];
     for (const question of parsed) {
      if (existing.has(question.prompt)) continue;
      existing.add(question.prompt);
      added.push({ ...question, id: crypto.randomUUID() });
     }
-    if (!added.length) throw Error('These questions are already in this week.');
+    if (!added.length) throw Error('These questions are already in this week. You can restore any that you removed.');
     const sets = state.practice?.sets;
     const prior = Array.isArray(sets?.[key]) ? sets[key] : [];
-    state.practice = { ...state.practice, sets: { ...sets, [key]: prior.concat(added) } };
-    save();
-    active = questions.length;
-    questions.push(...added);
+    updatePractice({ sets: { ...sets, [key]: prior.concat(added) } });
+    activeId = added[0].id;
     dialog.close();
     questionView(true);
    } catch (error) { dialog.querySelector('[role=alert]').textContent = error.message; }

@@ -180,7 +180,7 @@ function render() {
 
  if (calendarOpen) showCalendar(tasks, date);
  else if (view === 'practice') renderPractice(practiceRoot, {
-  state, course: current(), week: practiceWeek, starter: activeTerm === baseTerm, escape: esc, save,
+  state, course: current(), week: practiceWeek, starter: activeTerm === baseTerm, escape: esc, save, today,
   select: (code, week) => openView('practice', code, activeTerm, { week, keepPosition: true }),
  });
  else if (overviewOpen) {
