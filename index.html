@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <meta name="theme-color" content="#153e35">
+ <meta name="description" content="Nick's university study desk. Study sessions, deadlines and course progress.">
+ <title>Study Desk | Nick's university</title>
+ <link rel="icon" href="icon.svg">
+ <link rel="stylesheet" href="style.css">
+</head>
+<body>
+ <div class="app">
+  <aside class="sidebar">
+   <a class="brand" href="#" data-view="overview"><span class="brand-icon" aria-hidden="true">▤</span> study desk<span class="brand-dot">.</span></a>
+   <div class="workspace-label term-label">YOUR WORKSPACE</div>
+   <details class="term-picker" id="term-picker">
+    <summary>
+     <span class="term-initial" aria-hidden="true">N</span>
+     <span class="term-name"><strong>Nick’s university</strong><small id="active-term-label"></small></span>
+     <span class="term-chevron" aria-hidden="true"></span>
+    </summary>
+    <div id="term-options" class="term-options"></div>
+    <button type="button" class="term-add" data-add-term>＋ Add a term</button>
+   </details>
+   <nav class="workspace-nav" aria-label="Main navigation">
+    <button type="button" data-view="overview" class="nav"><span aria-hidden="true">▦</span> Overview</button>
+    <button type="button" data-view="calendar" class="nav"><span aria-hidden="true">▣</span> Study Calendar</button>
+    <button type="button" data-view="deadlines" class="nav"><span aria-hidden="true">◷</span> Deadlines <b id="deadline-count"></b></button>
+   </nav>
+   <div class="workspace-label course-label">COURSES</div>
+   <nav id="side-courses" aria-label="Courses"></nav>
+   <div class="side-bottom">
+    <details class="workspace-backup">
+     <summary>Backups</summary>
+     <div class="backup-actions"><button id="export">Export</button><button id="import">Restore</button></div>
+    </details>
+    <div class="save-indicator"><span class="tiny-dot"></span> <span id="save-state">Saved on this browser</span></div>
+    <input type="file" id="backup-file" accept="application/json,.json" hidden>
+   </div>
+  </aside>
+  <main>
+   <header class="topbar">
+    <div><span class="breadcrumb">Workspace</span><span class="slash">/</span><span id="crumb">Overview</span></div>
+    <span id="today"></span>
+   </header>
+   <div class="content">
+    <section id="overview-content" hidden>
+     <header class="page-heading">
+      <div><div class="eyebrow"><span class="tiny-dot"></span> <span id="overview-term"></span><span id="week-label"></span></div><h1>Study overview</h1></div>
+      <button type="button" class="primary" data-view="calendar">Open Study Calendar</button>
+     </header>
+     <section id="stats" class="stats" aria-label="Overall progress"></section>
+     <section id="overview-resume" class="overview-resume card" aria-label="Next study block" hidden></section>
+    <div class="overview-grid">
+      <section aria-labelledby="courses-title">
+       <div class="overview-upcoming-title">
+        <h2 class="workspace-section-title" id="courses-title">Your courses</h2>
+        <button type="button" class="link-button" data-add-course hidden>＋ Add course</button>
+       </div>
+       <div class="course-tabs" id="course-tabs"></div>
+      </section>
+      <section id="overview-upcoming" aria-label="Upcoming deadlines"></section>
+     </div>
+     <section class="course-area" id="course-area" aria-labelledby="course-name" hidden>
+      <header class="page-heading course-heading" id="course-header" tabindex="-1">
+       <div><div class="eyebrow" id="course-code"></div><h2 id="course-name"></h2></div>
+       <div id="course-progress" class="course-progress"></div>
+      </header>
+      <nav id="section-tabs" class="section-tabs" aria-label="Sections in this course"></nav>
+      <section class="course-section" id="course-weekly" aria-labelledby="weekly-title">
+       <div id="weekly-panel"></div>
+      </section>
+      <section class="course-section" id="course-tasks" aria-labelledby="tasks-title" hidden>
+       <header class="course-section-header">
+        <h3 id="tasks-title">Assessments &amp; labs</h3>
+        <button type="button" data-add-task>＋ Add task</button>
+       </header>
+       <div id="tasks-panel"></div>
+      </section>
+      <section class="course-section" id="course-info" aria-labelledby="info-title" hidden>
+       <header class="course-section-header"><h3 id="info-title">Course info &amp; links</h3></header>
+       <div id="info-panel"></div>
+      </section>
+     </section>
+    </section>
+
+    <section id="deadlines-content" hidden>
+     <header class="page-heading" id="deadlines-header">
+      <div><div class="eyebrow">ALL COURSES</div><h1>Deadlines</h1></div>
+      <button type="button" class="primary" data-add-task>＋ Add task</button>
+     </header>
+     <div id="deadlines-panel"></div>
+    </section>
+
+    <section id="study-calendar" aria-labelledby="study-calendar-title" hidden></section>
+    <footer class="workspace-footer">
+     <span>All dates and times are in Sydney time</span>
+     <div class="backup-actions"><button data-export>Export backup</button><button data-import>Restore backup</button></div>
+    </footer>
+   </div>
+  </main>
+ </div>
+ <dialog id="editor" aria-labelledby="dialog-title">
+  <form id="edit-form">
+   <div class="dialog-head">
+    <h2 id="dialog-title">Edit task</h2>
+    <button type="button" id="close-dialog" aria-label="Close">×</button>
+   </div>
+   <div id="fields"></div>
+   <div class="dialog-actions">
+    <button type="button" id="cancel">Cancel</button>
+    <button class="primary" type="submit">Save changes</button>
+   </div>
+  </form>
+ </dialog>
+ <div id="toast" role="status" aria-live="polite"></div>
+ <script type="module" src="app.js"></script>
+</body>
+</html>

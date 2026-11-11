@@ -1,0 +1,794 @@
+{
+  "version": 1,
+  "snapshot": "2026-11-11",
+  "courses": [
+    {
+      "code": "CVEN3101",
+      "name": "Engineering Operations and Control",
+      "weeks": [
+        {
+          "id": "CVEN3101-w1",
+          "week": 1,
+          "date": "2026-09-14",
+          "title": "Course introduction; Introduction to Project Management",
+          "status": "Done",
+          "notes": ""
+        },
+        {
+          "id": "CVEN3101-w2",
+          "week": 2,
+          "date": "2026-09-21",
+          "title": "Introduction to Project Management",
+          "status": "Done",
+          "notes": "Introduction slides additionally mention Project Scheduling in Week 2"
+        },
+        {
+          "id": "CVEN3101-w3",
+          "week": 3,
+          "date": "2026-09-28",
+          "title": "Project Scheduling",
+          "status": "Done",
+          "notes": "Part A due 2 October"
+        },
+        {
+          "id": "CVEN3101-w4",
+          "week": 4,
+          "date": "2026-10-05",
+          "title": "Engineering Economics",
+          "status": "Done",
+          "notes": ""
+        },
+        {
+          "id": "CVEN3101-w5",
+          "week": 5,
+          "date": "2026-10-12",
+          "title": "Contract Management",
+          "status": "Not started",
+          "notes": "Midterm 14 October"
+        },
+        {
+          "id": "CVEN3101-w6",
+          "week": 6,
+          "date": "2026-10-19",
+          "title": "Teaching break / Flex Week",
+          "status": "N/A",
+          "notes": "No classes in published schedule"
+        },
+        {
+          "id": "CVEN3101-w7",
+          "week": 7,
+          "date": "2026-10-26",
+          "title": "Conceptual Cost Estimation",
+          "status": "Not started",
+          "notes": ""
+        },
+        {
+          "id": "CVEN3101-w8",
+          "week": 8,
+          "date": "2026-11-02",
+          "title": "Detailed Cost Estimation",
+          "status": "Not started",
+          "notes": "Introduction slides specify Earthwork and Foundation Cost Estimation"
+        },
+        {
+          "id": "CVEN3101-w9",
+          "week": 9,
+          "date": "2026-11-09",
+          "title": "Construction Safety and Quality Management",
+          "status": "Not started",
+          "notes": ""
+        },
+        {
+          "id": "CVEN3101-w10",
+          "week": 10,
+          "date": "2026-11-16",
+          "title": "Engineering Ethics and Risks",
+          "status": "Not started",
+          "notes": "Part B due 20 November"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "CVEN3101-t1",
+          "title": "Assignment Part A",
+          "date": "2026-10-02",
+          "details": "Due 12:00. Weight 5%.",
+          "status": "Done",
+          "notes": "",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=MnByazJzbG00MXNnaDRhdmlxY3NramJkdWEgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "time": "12:00",
+          "assumed": true,
+          "type": "Assignment"
+        },
+        {
+          "id": "CVEN3101-t2",
+          "title": "Mid-Term Exam",
+          "date": "2026-10-14",
+          "details": "Starts 11:00. Weight 25%. Weeks 1-4. MathewsThA",
+          "status": "Done",
+          "notes": "Time conflict: Excel says 11:00; calendar title says 11:00pm. Actual time unknown. Past task assumed done.",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=NTJmZ2ZnOWo2Nm1yYTRxOWYzMGM4ZzJlZmUgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "time": "",
+          "assumed": true,
+          "type": "Exam"
+        },
+        {
+          "id": "CVEN3101-t3",
+          "title": "Assignment Part B",
+          "date": "2026-11-20",
+          "details": "Due 12:00. Weight 35%.",
+          "status": "In progress",
+          "notes": "",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=N3RlcDk5bzVqbW9pYWE2Y292OTc5a3Nia3IgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "time": "12:00",
+          "assumed": false,
+          "type": "Assignment"
+        },
+        {
+          "id": "cal-focsvvdui56ed87mhusb3tga3c",
+          "title": "Part B Turnitin similarity check (before noon)",
+          "date": "2026-11-20",
+          "time": "12:00",
+          "details": "Use the separate Moodle similarity-check link before the Part B submission\ndeadline at noon Sydney time. Submit the final PDF through the marking link.",
+          "notes": "",
+          "status": "Not started",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026",
+          "url": "https://www.google.com/calendar/event?eid=Zm9jc3Z2ZHVpNTZlZDg3bWh1c2IzdGdhM2MgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "assumed": false,
+          "type": "Assignment"
+        },
+        {
+          "id": "CVEN3101-t4",
+          "title": "Final Exam",
+          "date": "2026-11-27",
+          "details": "Weight 35%. Weeks 5-10.  1:45 pm to 4:00 pm Sydney time Duration: 2 hours + 15 minutes Paper 1\nPlatform: Inspera\n\nMaterials Notes as specified by School Calculator - UNSW Approved Ainsworth G01",
+          "status": "Not started",
+          "notes": "Exam date, time, room and materials copied from your calendar. Check official timetable for changes.",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=YmtpZWNjbWd2Nmgzbjk4azBrdWc4NWZoMXMgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "time": "13:45",
+          "assumed": false,
+          "type": "Exam"
+        }
+      ],
+      "info": [
+        "Source: 2026 T3 course outline, pp. 3-6, and course introduction, slides 9-18.",
+        "Baseline from the supplied course pack dated 6 November 2026. Later announcements may change deadlines."
+      ],
+      "notes": "",
+      "resources": [
+        {
+          "title": "Moodle",
+          "url": "https://moodle.telt.unsw.edu.au/",
+          "note": "Sign in and choose CVEN3101. Exact course and assignment links unknown."
+        }
+      ],
+      "warnings": [
+        "Calendar has a replacement lab labelled CVEN3101 on 12 October at 4 pm. Course association is unknown. Not counted as a course assessment.",
+        "Weekly study progress is imported from Excel. Past dated assessment tasks were assumed done once, as requested on 11 Nov 2026. Future tasks will not complete automatically.",
+        "Calendar is a snapshot checked on 11 Nov 2026. Later changes must be entered here or provided in chat."
+      ]
+    },
+    {
+      "code": "CVEN3202",
+      "name": "Soil Mechanics",
+      "weeks": [
+        {
+          "id": "CVEN3202-w1",
+          "week": 1,
+          "date": "2026-09-14",
+          "title": "Introduction; phase relationship; classification of soils",
+          "status": "Not started",
+          "notes": "Learning module 1 released"
+        },
+        {
+          "id": "CVEN3202-w2",
+          "week": 2,
+          "date": "2026-09-21",
+          "title": "Clay mineralogy; compaction",
+          "status": "Not started",
+          "notes": "Workshop 1; Lab 1; Lab 1 module released"
+        },
+        {
+          "id": "CVEN3202-w3",
+          "week": 3,
+          "date": "2026-09-28",
+          "title": "Stress and Mohr circle; stress in soils",
+          "status": "Not started",
+          "notes": "Workshop 2; Lab 1; Quiz 1; learning module 2 released"
+        },
+        {
+          "id": "CVEN3202-w4",
+          "week": 4,
+          "date": "2026-10-05",
+          "title": "Stress in soils continued; one-dimensional seepage",
+          "status": "Not started",
+          "notes": "Workshop 3; Lab 2; Lab 2 module and learning module 3 released; Monday holiday changes"
+        },
+        {
+          "id": "CVEN3202-w5",
+          "week": 5,
+          "date": "2026-10-12",
+          "title": "Two-dimensional seepage; consolidation theory",
+          "status": "Not started",
+          "notes": "Workshop 4; Lab 2; Learning module 4 released"
+        },
+        {
+          "id": "CVEN3202-w6",
+          "week": 6,
+          "date": "2026-10-19",
+          "title": "Recharge week; no lecture",
+          "status": "N/A",
+          "notes": "No new class activity shown; check existing submission deadlines"
+        },
+        {
+          "id": "CVEN3202-w7",
+          "week": 7,
+          "date": "2026-10-26",
+          "title": "Rate of consolidation; shear strength of soils",
+          "status": "Not started",
+          "notes": "Workshop 5; Lab 3; Quiz 2; Lab 3 module and learning module 5 released"
+        },
+        {
+          "id": "CVEN3202-w8",
+          "week": 8,
+          "date": "2026-11-02",
+          "title": "Shear strength continued; direct shear test",
+          "status": "Not started",
+          "notes": "Workshop 6; Lab 3; Learning module 6 released"
+        },
+        {
+          "id": "CVEN3202-w9",
+          "week": 9,
+          "date": "2026-11-09",
+          "title": "Triaxial test; stress path technique",
+          "status": "Not started",
+          "notes": "Workshop 7; Lab 4; Lab 4 module and learning module 7 released"
+        },
+        {
+          "id": "CVEN3202-w10",
+          "week": 10,
+          "date": "2026-11-16",
+          "title": "Slope stability",
+          "status": "Not started",
+          "notes": "Workshops 8 and 9; Lab 4; Quiz 3; learning module 8 released"
+        },
+        {
+          "id": "CVEN3202-w11",
+          "week": 11,
+          "date": "2026-11-23",
+          "title": "Revision and remaining submissions",
+          "status": "Not started",
+          "notes": "Revision and remaining submissions; no new class activity shown"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "CVEN3202-t1",
+          "title": "Quiz 1",
+          "date": "2026-09-28",
+          "details": "13:00-13:30. Weight 10%. Week 1. <https://moodle.telt.unsw.edu.au/mod/quiz/view.php?id=8945257>",
+          "status": "Done",
+          "notes": "Scope conflict in outline. Check quiz notice.",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=N2IxNjJzYzM5dTdvZnVibW1yNDM5cTd1bm0gbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "time": "13:00",
+          "assumed": true,
+          "type": "Quiz"
+        },
+        {
+          "id": "soil-lab1-activity",
+          "title": "Lab 1 activity sheet",
+          "date": "2026-10-05",
+          "time": "",
+          "details": "Activity sheet upload and online report module are separate requirements. Lab total weight: 2.5%.",
+          "notes": "Calendar labels this as Lab 1 Due. Treated as the sheet deadline; exact submission scope unknown.",
+          "status": "Done",
+          "type": "Lab",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=NWpjcWEwbG01N2o1cDZxbmh0ZGVxMHE5YW8gbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "assumed": true
+        },
+        {
+          "id": "cal-73omsrthsdm22e81m6sf5un224",
+          "title": "Learning Module 2 (Stress + Mohr circle)",
+          "date": "2026-10-21",
+          "time": "",
+          "details": "",
+          "notes": "",
+          "status": "Done",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026",
+          "url": "https://www.google.com/calendar/event?eid=NzNvbXNydGhzZG0yMmU4MW02c2Y1dW4yMjQgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "assumed": true,
+          "type": "Module"
+        },
+        {
+          "id": "CVEN3202-t2",
+          "title": "Quiz 2",
+          "date": "2026-10-26",
+          "details": "13:00-13:30. Weight 10%. Weeks 2-4.",
+          "status": "Done",
+          "notes": "Scope conflict in outline. Check quiz notice.",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=NWlmZHY1cmVkYTU1cGxwcmJtYjhiaTZwZjEgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "time": "13:00",
+          "assumed": true,
+          "type": "Quiz"
+        },
+        {
+          "id": "cal-4lqu1brhe83nad4i35blcian9e",
+          "title": "Learning Mod 3",
+          "date": "2026-11-07",
+          "time": "",
+          "details": "",
+          "notes": "",
+          "status": "Done",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026",
+          "url": "https://www.google.com/calendar/event?eid=NGxxdTFicmhlODNuYWQ0aTM1YmxjaWFuOWUgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "assumed": true,
+          "type": "Module"
+        },
+        {
+          "id": "soil-lab2-report",
+          "title": "Lab 2 report module",
+          "date": "2026-11-10",
+          "time": "",
+          "details": "Activity sheet upload and online report module are separate requirements. Lab total weight: 2.5%. Moodle lists this online module separately from the Lab 2 activity-sheet\nupload.",
+          "notes": "Exact task requirements need confirmation from course materials.",
+          "status": "Done",
+          "type": "Lab",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=djJmanV0OWFjbW80NW9sOGl2aWhuaDkyNW8gbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "assumed": true
+        },
+        {
+          "id": "soil-lab2-activity",
+          "title": "Lab 2 activity sheet",
+          "date": "2026-11-15",
+          "time": "23:55",
+          "details": "Activity sheet upload and online report module are separate requirements. Lab total weight: 2.5%. UNSW Moodle: Upload your lab activity sheet here - lab 2. Deadline: Sunday 15\nNovember 2026, 11:55 PM AEDT. Four submission attempts allowed.",
+          "notes": "Exact task requirements need confirmation from course materials.",
+          "status": "Not started",
+          "type": "Lab",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=NDQ3NWIwcHB0c3BjaGZwZWluZW1ic3NwODMgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "assumed": false
+        },
+        {
+          "id": "CVEN3202-t3",
+          "title": "Quiz 3",
+          "date": "2026-11-16",
+          "details": "13:00-13:30. Weight 10%. Weeks 5-8.",
+          "status": "Not started",
+          "notes": "",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=MzAwbGJhNm1obzdtdDdzc2I1ZWltNXVidjMgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "time": "13:00",
+          "assumed": false,
+          "type": "Quiz"
+        },
+        {
+          "id": "soil-lab3-report",
+          "title": "Lab 3 report module",
+          "date": "2026-11-17",
+          "time": "",
+          "details": "Activity sheet upload and online report module are separate requirements. Lab total weight: 2.5%. Moodle lists this online module separately from the activity-sheet upload.",
+          "notes": "Exact task requirements need confirmation from course materials.",
+          "status": "Not started",
+          "type": "Lab",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=NDhyaTMzN29vOXZhcnQwYWpyYnJrcGU0aTQgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "assumed": false
+        },
+        {
+          "id": "soil-lab3-activity",
+          "title": "Lab 3 activity sheet",
+          "date": "2026-11-30",
+          "time": "",
+          "details": "Activity sheet upload and online report module are separate requirements. Lab total weight: 2.5%. Activity-sheet upload deadline shown in Moodle.",
+          "notes": "Exact task requirements need confirmation from course materials.",
+          "status": "Not started",
+          "type": "Lab",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=OHQxaWtwbG4xY2lmazcydTNtZzJsY2ZpNmsgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "assumed": false
+        },
+        {
+          "id": "cal-qope6c39vuphca912s2a4qugas",
+          "title": "Learning Module 4 (2D seepage) closes",
+          "date": "2026-11-30",
+          "time": "",
+          "details": "Closing date shown in Moodle.",
+          "notes": "",
+          "status": "Not started",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026",
+          "url": "https://www.google.com/calendar/event?eid=cW9wZTZjMzl2dXBoY2E5MTJzMmE0cXVnYXMgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "assumed": false,
+          "type": "Module"
+        },
+        {
+          "id": "cal-cpbd4eum6669c63qkoid1cmjcc",
+          "title": "Learning Module 5 (rate of consolidation) closes",
+          "date": "2026-11-30",
+          "time": "",
+          "details": "Closing date shown in Moodle.",
+          "notes": "",
+          "status": "Not started",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026",
+          "url": "https://www.google.com/calendar/event?eid=Y3BiZDRldW02NjY5YzYzcWtvaWQxY21qY2MgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "assumed": false,
+          "type": "Module"
+        },
+        {
+          "id": "cal-j5kc9ifp31ic3i11dliiqihvms",
+          "title": "Learning Module 6 (Mohr-Coulomb failure criterion) closes",
+          "date": "2026-11-30",
+          "time": "",
+          "details": "Closing date shown in Moodle.",
+          "notes": "",
+          "status": "Not started",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026",
+          "url": "https://www.google.com/calendar/event?eid=ajVrYzlpZnAzMWljM2kxMWRsaWlxaWh2bXMgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "assumed": false,
+          "type": "Module"
+        },
+        {
+          "id": "CVEN3202-t8",
+          "title": "Final exam",
+          "date": "2026-12-01",
+          "details": "Weight 60%. Comprehensive, two hours. 9:45 am to 12:00 pm Sydney time Duration: 2 hours + 15 minutes Paper 1\nPlatform: Offline\n\nMaterials Calculator - Other Textbooks or notes (hardcopy) Calculator - UNSW\nApproved Law Building 388",
+          "status": "Not started",
+          "notes": "Exam date, time, room and materials copied from your calendar. Check official timetable for changes.",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=YWt1bTRyMWw3ZDExN3AxanYxZnRlbTlxMGMgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "time": "09:45",
+          "assumed": false,
+          "type": "Exam"
+        },
+        {
+          "id": "soil-lab4-activity",
+          "title": "Lab 4 activity sheet",
+          "date": "2026-12-10",
+          "time": "",
+          "details": "Activity sheet upload and online report module are separate requirements. Lab total weight: 2.5%. Activity-sheet upload deadline shown in Moodle.",
+          "notes": "Exact task requirements need confirmation from course materials.",
+          "status": "Not started",
+          "type": "Lab",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=aGE1ODdxdG1vaG1jOG1wdnNrOG5wbmljZTQgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "assumed": false
+        },
+        {
+          "id": "soil-lab4-report",
+          "title": "Lab 4 report module",
+          "date": "2026-12-12",
+          "time": "",
+          "details": "Activity sheet upload and online report module are separate requirements. Lab total weight: 2.5%. Moodle lists this online module separately from the activity-sheet upload.",
+          "notes": "Exact task requirements need confirmation from course materials.",
+          "status": "Not started",
+          "type": "Lab",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=MGthbWQ0aWU2NTgyMTczcHJuaWFza2xpNnYgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "assumed": false
+        },
+        {
+          "id": "soil-lab1-report",
+          "title": "Lab 1 report module",
+          "date": null,
+          "time": "",
+          "details": "Activity sheet upload and online report module are separate requirements. Lab total weight: 2.5%.",
+          "notes": "Deadline and exact requirements unknown until confirmed from course materials.",
+          "status": "Not started",
+          "type": "Lab",
+          "source": "Excel tracker: separate lab components",
+          "url": "",
+          "assumed": false
+        },
+        {
+          "id": "soil-mod1",
+          "title": "Learning Module 1",
+          "date": null,
+          "time": "",
+          "details": "Bonus module. Exact requirement and closing date unknown.",
+          "notes": "",
+          "status": "Not started",
+          "type": "Module",
+          "source": "Excel tracker: modules 1-8",
+          "url": "",
+          "assumed": false
+        },
+        {
+          "id": "soil-mod7",
+          "title": "Learning Module 7",
+          "date": null,
+          "time": "",
+          "details": "Bonus module. Exact requirement and closing date unknown.",
+          "notes": "",
+          "status": "Not started",
+          "type": "Module",
+          "source": "Excel tracker: modules 1-8",
+          "url": "",
+          "assumed": false
+        },
+        {
+          "id": "soil-mod8",
+          "title": "Learning Module 8",
+          "date": null,
+          "time": "",
+          "details": "Bonus module. Exact requirement and closing date unknown.",
+          "notes": "",
+          "status": "Not started",
+          "type": "Module",
+          "source": "Excel tracker: modules 1-8",
+          "url": "",
+          "assumed": false
+        }
+      ],
+      "info": [
+        "Source: 2026 T3 course outline, pp. 3-8, and introduction, slides 8-11. Quiz dates mapped from weeks.",
+        "Baseline from the supplied course pack dated 6 November 2026. Later announcements may change deadlines.",
+        "Bonus modules 1-8: see weekly notes for releases. Exact closes need Moodle confirmation.",
+        "Lab dates are personal to your allocated session. Both the activity sheet and online module are required."
+      ],
+      "notes": "",
+      "resources": [
+        {
+          "title": "Moodle",
+          "url": "https://moodle.telt.unsw.edu.au/",
+          "note": "Sign in and choose CVEN3202. Exact course and assignment links unknown."
+        }
+      ],
+      "warnings": [
+        "Weekly study progress is imported from Excel. Past dated assessment tasks were assumed done once, as requested on 11 Nov 2026. Future tasks will not complete automatically.",
+        "Calendar is a snapshot checked on 11 Nov 2026. Later changes must be entered here or provided in chat.",
+        "Lab attendance is assumed complete for sessions already past, but is not counted as a submission. Lab 2 sheet is due 15 Nov; its report module closed 10 Nov. Lab 3 and 4 sheet uploads and modules also have different deadlines.",
+        "Quiz scope conflicts remain unresolved in the source outline. Confirm the quiz notices. Learning Module 1, 7 and 8 dates remain unknown."
+      ]
+    },
+    {
+      "code": "ENGG2500",
+      "name": "Fluid Mechanics",
+      "weeks": [
+        {
+          "id": "ENGG2500-w1",
+          "week": 1,
+          "date": "2026-09-14",
+          "title": "Fluid properties, fluid statics, pressure measurement and manometers",
+          "status": "Done",
+          "notes": ""
+        },
+        {
+          "id": "ENGG2500-w2",
+          "week": 2,
+          "date": "2026-09-21",
+          "title": "Forces on submerged surfaces, buoyancy, floating stability and accelerating fluids",
+          "status": "In progress",
+          "notes": ""
+        },
+        {
+          "id": "ENGG2500-w3",
+          "week": 3,
+          "date": "2026-09-28",
+          "title": "Flow descriptions, continuity, flow visualisation and steady-flow energy",
+          "status": "Not started",
+          "notes": "Assessments: OA1"
+        },
+        {
+          "id": "ENGG2500-w4",
+          "week": 4,
+          "date": "2026-10-05",
+          "title": "Bernoulli, grade lines and general energy equation",
+          "status": "Not started",
+          "notes": ""
+        },
+        {
+          "id": "ENGG2500-w5",
+          "week": 5,
+          "date": "2026-10-12",
+          "title": "Linear momentum, jets, nozzles and combined momentum-energy questions",
+          "status": "Not started",
+          "notes": "Assessments: OA2"
+        },
+        {
+          "id": "ENGG2500-w6",
+          "week": 6,
+          "date": "2026-10-19",
+          "title": "Flexibility week",
+          "status": "N/A",
+          "notes": ""
+        },
+        {
+          "id": "ENGG2500-w7",
+          "week": 7,
+          "date": "2026-10-26",
+          "title": "Dimensional analysis, similarity and introduction to internal flow",
+          "status": "Not started",
+          "notes": "Assessments: LAB1, MID, OA3"
+        },
+        {
+          "id": "ENGG2500-w8",
+          "week": 8,
+          "date": "2026-11-02",
+          "title": "Laminar and turbulent pipe flow, Moody chart and Darcy friction factor",
+          "status": "Not started",
+          "notes": "Assessments: LAB2"
+        },
+        {
+          "id": "ENGG2500-w9",
+          "week": 9,
+          "date": "2026-11-09",
+          "title": "Pipe friction, minor losses, pipe networks and angular momentum",
+          "status": "Not started",
+          "notes": "Assessments: OA4"
+        },
+        {
+          "id": "ENGG2500-w10",
+          "week": 10,
+          "date": "2026-11-16",
+          "title": "External boundary layers and drag",
+          "status": "Not started",
+          "notes": "Assessments: LAB3"
+        },
+        {
+          "id": "ENGG2500-w11",
+          "week": 11,
+          "date": "2026-11-23",
+          "title": "Revision and Online Assignment 5",
+          "status": "Not started",
+          "notes": "No new lectures scheduled."
+        }
+      ],
+      "tasks": [
+        {
+          "id": "ENGG2500-t1",
+          "title": "Online Assignment 1",
+          "date": "2026-10-03",
+          "details": "Due 23:55. Weight 3%.",
+          "status": "Done",
+          "notes": "",
+          "source": "Excel tracker",
+          "url": "",
+          "time": "23:55",
+          "assumed": true,
+          "type": "Assignment"
+        },
+        {
+          "id": "ENGG2500-t2",
+          "title": "Online Assignment 2",
+          "date": "2026-10-17",
+          "details": "Due 23:55. Weight 3%.",
+          "status": "Done",
+          "notes": "",
+          "source": "Excel tracker",
+          "url": "",
+          "time": "23:55",
+          "assumed": true,
+          "type": "Assignment"
+        },
+        {
+          "id": "ENGG2500-t3",
+          "title": "Hydrostatics lab report",
+          "date": "2026-10-26",
+          "details": "Due 23:55. Weight 5%.",
+          "status": "Done",
+          "notes": "",
+          "source": "Excel tracker",
+          "url": "",
+          "time": "23:55",
+          "assumed": true,
+          "type": "Lab"
+        },
+        {
+          "id": "ENGG2500-t4",
+          "title": "Midterm test",
+          "date": "2026-10-28",
+          "details": "Weight 15%. Weeks 1-5. Confirm start time.",
+          "status": "Done",
+          "notes": "",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=MHVwdTg0M3ZocnQxdHBpZDAyZ2JvcW5qMDggbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "time": "16:00",
+          "assumed": true,
+          "type": "Exam"
+        },
+        {
+          "id": "ENGG2500-t5",
+          "title": "Online Assignment 3",
+          "date": "2026-10-31",
+          "details": "Due 23:55. Weight 3%.",
+          "status": "Done",
+          "notes": "",
+          "source": "Excel tracker",
+          "url": "",
+          "time": "23:55",
+          "assumed": true,
+          "type": "Assignment"
+        },
+        {
+          "id": "ENGG2500-t6",
+          "title": "Flow Measurement lab report",
+          "date": "2026-11-07",
+          "details": "Due 23:55. Weight 5%. Due date from the Moodle calendar and cutoff time from the ENGG2500 course\noutline.",
+          "status": "Done",
+          "notes": "",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=dWtnYTJocHZpdXY4dTFycWE5bDVncTFuZjggbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "time": "23:55",
+          "assumed": true,
+          "type": "Lab"
+        },
+        {
+          "id": "ENGG2500-t7",
+          "title": "Online Assignment 4",
+          "date": "2026-11-14",
+          "details": "Due 23:55. Weight 3%. Due date from the Moodle calendar and cutoff time from the ENGG2500 course\noutline.",
+          "status": "Not started",
+          "notes": "",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=amp0MGV1MmQyN2QxNmY5Zm5mazc4dWg0NXMgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "time": "23:55",
+          "assumed": false,
+          "type": "Assignment"
+        },
+        {
+          "id": "ENGG2500-t8",
+          "title": "Pipe Flow lab report",
+          "date": "2026-11-21",
+          "details": "Due 23:55. Weight 5%. Due date from the Moodle calendar and cutoff time from the ENGG2500 course\noutline.",
+          "status": "Not started",
+          "notes": "",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=MTZhdGVkcW51ZzEzZjBhbHJvdWI1bWhtbnMgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "time": "23:55",
+          "assumed": false,
+          "type": "Lab"
+        },
+        {
+          "id": "ENGG2500-t9",
+          "title": "Online Assignment 5",
+          "date": "2026-11-28",
+          "details": "Due 23:55. Weight 3%. Due date from the Moodle calendar and cutoff time from the ENGG2500 course\noutline.",
+          "status": "Not started",
+          "notes": "",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=OGFidHJhMHNhdmR1b2MwOTdrMWhvdWVzZW8gbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "time": "23:55",
+          "assumed": false,
+          "type": "Assignment"
+        },
+        {
+          "id": "ENGG2500-t10",
+          "title": "Final examination",
+          "date": "2026-12-05",
+          "details": "Weight 55%. All lecture material.  1:45 pm to 4:00 pm Sydney time Duration: 2 hours + 15 minutes Paper 1\nPlatform: Offline\n\nMaterials Textbooks or notes (hardcopy) Calculator - UNSW Approved Rupert Myers 1001",
+          "status": "Not started",
+          "notes": "Exam date, time, room and materials copied from your calendar. Check official timetable for changes.",
+          "source": "Google Calendar \u00b7 checked 11 Nov 2026 + Excel tracker",
+          "url": "https://www.google.com/calendar/event?eid=cXVrazltbHU2Z2lzMW5jbmF2ZTA3YnY2dGcgbmljaG9sYXNuZzM5OUBt&ctz=Australia/Sydney",
+          "time": "13:45",
+          "assumed": false,
+          "type": "Exam"
+        }
+      ],
+      "info": [
+        "Source: 2026 T3 course outline, pp. 4 and 11. Assignment dates mapped from specified weeks.",
+        "Baseline from the supplied course pack dated 6 November 2026. Later announcements may change deadlines."
+      ],
+      "notes": "",
+      "resources": [
+        {
+          "title": "Moodle",
+          "url": "https://moodle.telt.unsw.edu.au/",
+          "note": "Sign in and choose ENGG2500. Exact course and assignment links unknown."
+        }
+      ],
+      "warnings": [
+        "Weekly study progress is imported from Excel. Past dated assessment tasks were assumed done once, as requested on 11 Nov 2026. Future tasks will not complete automatically.",
+        "Calendar is a snapshot checked on 11 Nov 2026. Later changes must be entered here or provided in chat."
+      ]
+    }
+  ]
+}
