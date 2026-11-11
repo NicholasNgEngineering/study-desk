@@ -1,4 +1,4 @@
-import { practiceQuestions, practiceWeeks, renderPractice } from './practice.js?v=practice-parts-20261112';
+import { practiceQuestions, practiceWeeks, renderPractice } from './practice.js?v=practice-choices-20261112';
 import { durationLabel, pendingStudyBlocks, readStudyProgress, weeklyBlockProgress } from './study-progress.js';
 import { baseTerm, blankTerm, courseCodePattern, isTermId, makeWorkspace, nextTerm, statuses, termLabel, validTerm, validWorkspace } from './workspace.js';
 

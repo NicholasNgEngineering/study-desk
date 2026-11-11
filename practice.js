@@ -19,6 +19,9 @@ const fluidsWeekOne = [
   unit: 'kPa', answer: (13600-1000)*9.81*0.18/1000, tolerance: 0.05, working: 'A has the higher pressure because its mercury interface is lower. The water columns offset part of the mercury head. pA − pB = (13,600 − 1,000) × 9.81 × 0.18 = 22.25 kPa.' },
  { topic: 'Ideal gas density', prompt: 'Air is at 101.3 kPa absolute and 295 K. Treat it as an ideal gas with R = 286.9 J/(kg·K). Find its density to three significant figures.',
   unit: 'kg/m³', answer: 101300/(286.9*295), tolerance: 0.005, working: 'Use ρ = p/(RT). Convert absolute pressure to pascals, then divide 101,300 by 286.9 × 295 to get 1.20 kg/m³.' },
+ { topic: 'Pressure at a free surface', prompt: 'A tank is open to the atmosphere. What is the gauge pressure at the water surface?',
+  options: ['The local atmospheric pressure', 'Zero', 'The negative of the local atmospheric pressure', 'The same as at the bottom of the tank'],
+  answer: 'B', working: 'At the free surface, the absolute pressure equals the local atmospheric pressure. Gauge pressure is the difference between these pressures, so it is zero.' },
 ].map((question, index) => ({ ...question, id: 'engg2500-w1-' + (index + 1) }));
 
 export function practiceWeeks(course) {
@@ -27,12 +30,23 @@ export function practiceWeeks(course) {
 
 const minParts = 2;
 const maxParts = 12;
+const choiceLetters = 'ABCDEFGH';
+const normalize = text => text.trim().toLowerCase().replace(/\s+/g, ' ');
 const shortText = (value, limit) => typeof value === 'string' && value.length <= limit;
 const hasLabel = part => shortText(part?.label, 100) && part.label.trim();
-const validAnswer = ({ answer, tolerance }) => Number.isFinite(answer)
- ? Number.isFinite(tolerance) && tolerance >= 0
- : Array.isArray(answer) && answer.length > 0 && answer.length <= 15
+const validOptions = options => Array.isArray(options) && options.length >= 2 && options.length <= choiceLetters.length
+ && options.every(text => shortText(text, 300) && text.trim())
+ && new Set(options.map(normalize)).size === options.length;
+const validChoice = (answer, count) => typeof answer === 'string' && answer.length === 1
+ && choiceLetters.slice(0, count).includes(answer);
+
+function validAnswer({ options, answer, tolerance }) {
+ if (options != null) return validOptions(options) && validChoice(answer, options.length);
+ if (Number.isFinite(answer)) return Number.isFinite(tolerance) && tolerance >= 0;
+ return Array.isArray(answer) && answer.length > 0 && answer.length <= 15
   && answer.every(text => shortText(text, 150) && text.trim());
+}
+
 const validParts = parts => Array.isArray(parts) && parts.length >= minParts && parts.length <= maxParts;
 
 export function practiceQuestions(state, code, week, starter, includeRemoved = false) {
@@ -67,7 +81,7 @@ export function parsePracticePack(raw) {
   if (!validParts(parts)) fail('Include ' + minParts + ' to ' + maxParts + ' parts.');
   question.parts = parts.map((part, partIndex) => {
    const failPart = message => fail('Part ' + (partIndex + 1) + '. ' + message);
-   if (!hasLabel(part)) failPart('Include a short label for this answer box.');
+   if (!hasLabel(part)) failPart('Include a short label for this part.');
    return { label: part.label.trim(), ...parseAnswer(part, failPart) };
   });
   const labels = new Set(question.parts.map(part => normalize(part.label)));
@@ -77,7 +91,13 @@ export function parsePracticePack(raw) {
 }
 
 function parseAnswer(spec, fail) {
- const { unit, answer, tolerance } = spec;
+ const { unit, options, answer, tolerance } = spec;
+ if (options != null) {
+  if (!validOptions(options)) fail('Use 2 to 8 distinct options of up to 300 characters each.');
+  const letter = typeof answer === 'string' ? answer.trim().toUpperCase() : answer;
+  if (!validChoice(letter, options.length)) fail('Use the letter of one listed option as the answer, such as "B".');
+  return { options: options.map(option => option.trim()), answer: letter };
+ }
  if (unit != null && !shortText(unit, 40)) fail('Use short text for the unit.');
  if (!validAnswer(spec)) {
   fail(Number.isFinite(answer)
@@ -87,12 +107,12 @@ function parseAnswer(spec, fail) {
  return { unit: unit?.trim() || '', answer, tolerance: Number.isFinite(answer) ? tolerance : 0 };
 }
 
-const normalize = text => text.trim().toLowerCase().replace(/\s+/g, ' ');
 const numeric = /^[+−-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+−-]?\d+)?$/i;
 
 export function gradePracticeAnswer(question, response) {
  const value = response.trim();
  if (!value) return 'empty';
+ if (question.options) return value.toUpperCase() === question.answer ? 'correct' : 'incorrect';
  if (Array.isArray(question.answer)) {
   return question.answer.some(answer => normalize(answer) === normalize(value)) ? 'correct' : 'incorrect';
  }
@@ -105,11 +125,13 @@ export function gradePracticeAnswer(question, response) {
 
 const promptText = (code, week) => `Make a Study Desk practice set for ${code}, Week ${week}, using the topics and questions we covered in this chat. Return only a JSON array of 1 to 60 questions.
 
-Keep the parts of each original question together. When several answers use the same scenario or given data, write the setup once in "prompt" and put the requested answers in a "parts" array (2 to 12 parts). Each part creates its own answer box. Keep the original order and give each part a distinct label that says what to calculate or provide. Use the single-answer format for standalone questions with one answer.
+Keep the parts of each original question together. When several answers use the same scenario or given data, write the setup once in "prompt" and put the requested answers in a "parts" array (2 to 12 parts). Keep the original order and give each part a distinct label that says what to calculate or provide. Put the answer fields directly on a standalone question with one answer.
+
+Use a mix of typed answers and multiple choice as appropriate. Keep source multiple-choice questions as multiple choice. For each multiple-choice question or part, use "options" with 2 to 8 distinct strings in display order, and use the letter of the one correct option as "answer" (for example, "B" for the second option). Leave letters out of the option strings. For newly written options, use plausible distractors and vary the position of the correct option. Use a typed answer when the student should calculate or recall it independently.
 
 Use an answer number and an absolute tolerance in the displayed unit for numeric answers. Use an array of accepted strings for short text answers. Use an empty unit for dimensionless answers. Verify the answers, units and rounding. Put the worked solution for all parts in the question's "working" field.
 
-Example with both formats:
+Example set:
 [
  {"topic":"Fluid properties","prompt":"A container holds 3.0 L of oil with a mass of 2.55 kg. Use water density 1000 kg/m³ and g = 9.81 m/s². Find the four properties below.","parts":[
   {"label":"Density","unit":"kg/m³","answer":850,"tolerance":0.5},
@@ -117,25 +139,43 @@ Example with both formats:
   {"label":"Specific weight","unit":"N/m³","answer":8338.5,"tolerance":0.5},
   {"label":"Specific volume (4 significant figures)","unit":"m³/kg","answer":0.00117647,"tolerance":0.0000005}
  ],"working":"Convert 3.0 L to 0.0030 m³. Density = 2.55 ÷ 0.0030 = 850 kg/m³. Specific gravity = 850 ÷ 1000 = 0.85. Specific weight = 850 × 9.81 = 8338.5 N/m³. Specific volume = 1 ÷ 850 = 0.001176 m³/kg to four significant figures."},
- {"topic":"Pressure","prompt":"The gauge pressure is 20 kPa and atmospheric pressure is 101.3 kPa. Find the absolute pressure.","unit":"kPa","answer":121.3,"tolerance":0.05,"working":"Absolute pressure = 101.3 + 20 = 121.3 kPa."}
+ {"topic":"Pressure","prompt":"The gauge pressure is 20 kPa and atmospheric pressure is 101.3 kPa. Find the absolute pressure.","unit":"kPa","answer":121.3,"tolerance":0.05,"working":"Absolute pressure = 101.3 + 20 = 121.3 kPa."},
+ {"topic":"Specific gravity","prompt":"Which quantity is dimensionless?","options":["Dynamic viscosity","Specific weight","Specific gravity","Density"],"answer":"C","working":"Specific gravity is the ratio of two densities, so the units cancel."}
 ]`;
 
-const questionKey = question => JSON.stringify([question.prompt, question.parts?.map(part => normalize(part.label))]);
+const questionKey = question => JSON.stringify([question.prompt,
+ question.parts?.map(part => [normalize(part.label), Boolean(part.options)]) ?? Boolean(question.options)]);
+
+function choiceField(spec, id, legend, esc, description = '') {
+ return `<fieldset class="practice-choices" id="${id}" data-answer ${description}>
+  <legend>${legend}</legend>
+  ${spec.options.map((option, index) => `<label class="practice-choice">
+   <input type="radio" name="${id}" value="${choiceLetters[index]}">
+   <span class="practice-choice-letter">${choiceLetters[index]}.</span><span>${esc(option)}</span>
+  </label>`).join('')}
+ </fieldset>`;
+}
 
 function answerFields(question, esc) {
- const input = (spec, id, attributes = '') => `<input id="${id}" type="text"
+ const input = (spec, id, attributes = '') => `<input id="${id}" name="${id}" data-answer type="text"
   ${Number.isFinite(spec.answer) ? 'inputmode="decimal"' : ''} autocomplete="off" maxlength="180" ${attributes}>`;
  const unit = spec => spec.unit ? ' (' + esc(spec.unit) + ')' : '';
- if (!question.parts) return `
+ const checkAnswer = '<button type="submit" class="primary">Check answer</button>';
+ if (!question.parts) return question.options
+  ? choiceField(question, 'practice-answer', 'Choose one answer', esc) + checkAnswer
+  : `
   <label class="field" for="practice-answer">Your answer${unit(question)}</label>
-  <div class="practice-answer">${input(question, 'practice-answer', 'name="answer" required')}
-   <button type="submit" class="primary">Check answer</button>
+  <div class="practice-answer">${input(question, 'practice-answer', 'required')}
+   ${checkAnswer}
   </div>`;
  return `<div class="practice-parts">${question.parts.map((part, index) => {
   const id = 'practice-answer-' + index;
+  const label = String.fromCharCode(65 + index) + '. ' + esc(part.label) + unit(part);
+  const description = 'aria-describedby="' + id + '-feedback"';
+  const field = part.options ? choiceField(part, id, label, esc, description)
+   : `<label class="field" for="${id}">${label}</label>${input(part, id, description)}`;
   return `<div class="practice-part">
-   <label class="field" for="${id}">${String.fromCharCode(65 + index)}. ${esc(part.label)}${unit(part)}</label>
-   ${input(part, id, 'aria-describedby="' + id + '-feedback"')}
+   ${field}
    <span class="practice-part-feedback" id="${id}-feedback" hidden></span>
   </div>`;
  }).join('')}</div>
@@ -336,7 +376,7 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
 
   const ratings = panel.querySelector('.practice-ratings');
   const form = panel.querySelector('form');
-  const inputs = [...form.querySelectorAll('input')];
+  const controls = [...form.querySelectorAll('[data-answer]')];
   const partFeedback = [...form.querySelectorAll('.practice-part-feedback')];
   const feedback = panel.querySelector('.practice-feedback');
   const partMessages = {
@@ -346,22 +386,26 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
   let missed = false;
   form.onsubmit = event => {
    event.preventDefault();
-   const results = parts.map((part, index) => gradePracticeAnswer(part, inputs[index].value));
+   const responses = new FormData(form);
+   const results = parts.map((part, index) => gradePracticeAnswer(part, responses.get(controls[index].id) ?? ''));
+   const messages = results.map((result, index) => result === 'empty' && parts[index].options
+    ? 'Choose an answer.' : partMessages[result]);
    const correct = results.filter(result => result === 'correct').length;
    const allCorrect = correct === parts.length;
    const answered = results.every(result => result === 'correct' || result === 'incorrect');
    if (results.includes('incorrect')) missed = true;
+   if (!multi && question.options) controls[0].setAttribute('aria-invalid', String(!allCorrect));
    partFeedback.forEach((message, index) => {
     const result = results[index];
-    message.textContent = partMessages[result];
+    message.textContent = messages[index];
     message.dataset.result = result;
     message.hidden = false;
-    inputs[index].setAttribute('aria-invalid', String(result !== 'correct'));
+    controls[index].setAttribute('aria-invalid', String(result !== 'correct'));
    });
    const summary = multi ? correct + ' of ' + parts.length + ' correct.'
-    : allCorrect && missed && isDue ? 'Correct on retry.' : partMessages[results[0]];
+    : allCorrect && missed && isDue ? 'Correct on retry.' : messages[0];
    let guidance = '';
-   if (multi && !answered) guidance = ' Complete every answer box to finish checking.';
+   if (multi && !answered) guidance = ' Answer every part to finish checking.';
    else if (answered && missed && isDue) guidance = ' Choose Again to review it later today.';
    else if (answered && !allCorrect) guidance = ' Try again or check the working.';
    feedback.dataset.result = allCorrect ? 'correct' : 'incorrect';
@@ -380,10 +424,11 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
    }
   };
   form.oninput = event => {
-   const input = event.target;
-   const message = partFeedback[inputs.indexOf(input)];
+   const control = event.target.closest('[data-answer]');
+   if (!control) return;
+   const message = partFeedback[controls.indexOf(control)];
    if (message) message.hidden = true;
-   input.removeAttribute('aria-invalid');
+   control.removeAttribute('aria-invalid');
    feedback.hidden = true;
    if (ratings) ratings.hidden = true;
   };
