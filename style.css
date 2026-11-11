@@ -79,6 +79,11 @@
 .info-stack { display: grid; gap: 14px; }
 .info-grid h2 { font-size: 15px; margin: 0 0 10px; }
 .info-grid p, .info-grid li { color: #546359; }
+.info-grid .materials-checklist { margin: 0; padding: 0; list-style: none; }
+.materials-checklist li + li { border-top: 1px solid var(--line); }
+.materials-checklist label { display: flex; align-items: center; gap: 9px; min-height: 34px; padding: 4px 0; cursor: pointer; }
+.materials-checklist input { width: 16px; height: 16px; flex: none; margin: 0; accent-color: var(--green); }
+.materials-checklist input:checked + span { text-decoration: line-through; }
 .course-sources { margin-top: 16px; padding-top: 13px; border-top: 1px solid var(--line); }
 .task-extra { margin-top: 5px; font-size: 12px; color: #526459; }
 .course-sources summary, .task-extra summary { cursor: pointer; color: var(--green); }

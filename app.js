@@ -9,6 +9,16 @@ const esc = value => String(value ?? '').replace(/[&<>"']/g, character => HTML_E
 const LEGACY_KEY = 'nick-study-desk-v1';
 const KEY = 'nick-study-desk-workspace-v2';
 const courseColors = { CVEN3101: '#729783', CVEN3202: '#9988b3', ENGG2500: '#b89964' };
+const engg2500Materials = [
+ ['week-9-transcripts', 'Week 9 lecture transcripts'],
+ ['final-instructions', '2026 final exam instructions (if available)'],
+ ['week-10-slides', 'Week 10 slides'],
+ ['week-10-transcripts', 'Week 10 lecture transcripts'],
+ ['week-10-workshop', 'Week 10 workshop'],
+ ['assignment-4', 'Online Assignment 4'],
+ ['assignment-5', 'Online Assignment 5'],
+];
+const sentMaterials = course => new Set(Array.isArray(course.sentMaterials) ? course.sentMaterials : []);
 const sydneyDate = new Intl.DateTimeFormat('en-CA', {
  timeZone: 'Australia/Sydney', year: 'numeric', month: '2-digit', day: '2-digit',
 });
@@ -465,7 +475,9 @@ function renderTaskResults(kind) {
 }
 function renderInfo() {
  const selected = current();
- setMarkup($('#info-panel'), `<div class="info-grid">
+ const panel = $('#info-panel');
+ const showMaterials = activeTerm === baseTerm && selected.code === 'ENGG2500';
+ setMarkup(panel, `<div class="info-grid">
   <div class="info-stack">
    <div class="card">
     <h4>Course links & materials</h4>
@@ -483,19 +495,33 @@ function renderInfo() {
     <button class="link-button" data-notes>Edit notes</button>
    </div>
   </div>
-  <div class="card">
-   <h4>Course information</h4>
-   <ul>${selected.warnings.map(warning => `<li>${esc(warning)}</li>`).join('')}</ul>
-   <div class="info-actions"><button data-edit-info>Edit course information</button></div>
-   <details class="course-sources">
-    <summary>Sources & date assumptions</summary>
-    ${selected.info.map(item => `<p>${esc(item)}</p>`).join('')}
-    <p>${activeTerm === baseTerm
-     ? 'Dates come from your tracker and the 11 Nov 2026 calendar snapshot. Past dated tasks through 10 Nov were assumed done. Original course outlines and task briefs still need confirmation.'
-     : 'Dates and requirements are unknown until you add the course materials.'}</p>
-   </details>
+  <div class="info-stack">
+   <div class="card">
+    <h4>Course information</h4>
+    <ul>${selected.warnings.map(warning => `<li>${esc(warning)}</li>`).join('')}</ul>
+    <div class="info-actions"><button data-edit-info>Edit course information</button></div>
+    <details class="course-sources">
+     <summary>Sources & date assumptions</summary>
+     ${selected.info.map(item => `<p>${esc(item)}</p>`).join('')}
+     <p>${activeTerm === baseTerm
+      ? 'Dates come from your tracker and the 11 Nov 2026 calendar snapshot. Past dated tasks through 10 Nov were assumed done. Original course outlines and task briefs still need confirmation.'
+      : 'Dates and requirements are unknown until you add the course materials.'}</p>
+    </details>
+   </div>
+   ${showMaterials ? `<section class="card" aria-labelledby="materials-to-send-title">
+    <h4 id="materials-to-send-title">Materials to send</h4>
+    <ul class="materials-checklist">${engg2500Materials.map(([id, title]) => `<li>
+     <label><input type="checkbox" data-send-material="${id}"><span>${title}</span></label>
+    </li>`).join('')}</ul>
+   </section>` : ''}
   </div>
  </div>`);
+ if (showMaterials) {
+  const sent = sentMaterials(selected);
+  for (const checkbox of panel.querySelectorAll('[data-send-material]')) {
+   checkbox.checked = sent.has(checkbox.dataset.sendMaterial);
+  }
+ }
 }
 
 const content = $('.content');
@@ -531,6 +557,13 @@ content.addEventListener('change', event => {
  } else if ('status' in control.dataset) {
   const { course: code, kind, status: id } = control.dataset;
   changeStatus(code, kind, id, control.value);
+ } else if ('sendMaterial' in control.dataset) {
+  const selected = current();
+  const sent = sentMaterials(selected);
+  if (control.checked) sent.add(control.dataset.sendMaterial);
+  else sent.delete(control.dataset.sendMaterial);
+  selected.sentMaterials = [...sent];
+  save();
  }
 });
 
