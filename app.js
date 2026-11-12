@@ -9,52 +9,45 @@ const esc = value => String(value ?? '').replace(/[&<>"']/g, character => HTML_E
 const LEGACY_KEY = 'nick-study-desk-v1';
 const KEY = 'nick-study-desk-workspace-v2';
 const courseColors = { CVEN3101: '#729783', CVEN3202: '#9988b3', ENGG2500: '#b89964' };
+
+// Keep the original item IDs so saved checkmarks and backups still match.
+const operationsModules = [
+ { number: 4, week: 5, title: 'Contract Management', lectures: 1 },
+ { number: 5, week: 7, title: 'Conceptual Cost Estimation', lectures: 2 },
+ { number: 6, week: 8, title: 'Earthwork and Foundation Cost Estimation', lectures: 2 },
+ { number: 7, week: 9, title: 'Construction Safety and Quality Management', lectures: 2 },
+ { number: 8, week: 10, title: 'Engineering Ethics and Risks', lectures: 2,
+  note: 'The Moodle screenshot shows this module locked and lists the Module 7 Safety and Quality quiz as a prerequisite.' },
+].map(({ number, week, title, lectures, note }) => {
+ const id = 'week-' + week;
+ return {
+  title: `Module ${number} · ${title}`,
+  note,
+  items: [
+   [id + '-slides', 'Lecture slides'],
+   [id + '-workshop-questions', 'Workshop questions'],
+   [id + '-workshop-solutions', 'Workshop worked solutions'],
+   ...Array.from({ length: lectures }, (_, index) => [
+    `${id}-lecture-${index + 1}`, `Lecture ${index + 1} transcript`,
+   ]),
+   [id + '-workshop-transcript', 'Workshop transcript or recording (if available)'],
+  ],
+ };
+});
+
 const courseMaterials = {
  CVEN3101: [
-  { title: 'Send first', items: [
+  ...operationsModules,
+  { title: 'Final exam notices (if posted)', items: [
    ['final-instructions', 'Latest final exam notice or Moodle announcement (if posted)'],
-   ['formula-sheet', 'Separate final exam formula sheet (if posted)'],
    ['permitted-aids', 'Separate permitted-aids instructions (if posted)'],
    ['exam-format-update', 'Separate exam format update (if posted)'],
-   ['week-5-slides', 'Week 5 slides · Contract Management'],
-   ['week-7-slides', 'Week 7 slides · Conceptual Cost Estimation'],
-   ['week-8-slides', 'Week 8 slides · Detailed Cost Estimation, Earthwork and Foundations'],
-   ['week-9-slides', 'Week 9 slides · Construction Safety and Quality Management'],
-   ['week-5-workshop-questions', 'Week 5 workshop questions'],
-   ['week-5-workshop-solutions', 'Week 5 workshop worked solutions'],
-   ['week-7-workshop-questions', 'Week 7 workshop questions'],
-   ['week-7-workshop-solutions', 'Week 7 workshop worked solutions'],
-   ['week-8-workshop-questions', 'Week 8 workshop questions'],
-   ['week-8-workshop-solutions', 'Week 8 workshop worked solutions'],
-   ['week-9-workshop-questions', 'Week 9 workshop questions'],
-   ['week-9-workshop-solutions', 'Week 9 workshop worked solutions'],
   ] },
   { title: 'Past or sample final (if available)', items: [
    ['sample-final', 'One CVEN3101 past or sample final paper'],
    ['sample-final-solutions', 'Answer key or worked solutions for that paper'],
   ] },
-  { title: 'Weeks 5, 7, 8 and 9 lecture transcripts', items: [
-   ['week-5-lecture-1', 'Week 5 Lecture 1 transcript'],
-   ['week-7-lecture-1', 'Week 7 Lecture 1 transcript'],
-   ['week-7-lecture-2', 'Week 7 Lecture 2 transcript'],
-   ['week-8-lecture-1', 'Week 8 Lecture 1 transcript'],
-   ['week-8-lecture-2', 'Week 8 Lecture 2 transcript'],
-   ['week-9-lecture-1', 'Week 9 Lecture 1 transcript'],
-   ['week-9-lecture-2', 'Week 9 Lecture 2 transcript'],
-  ] },
-  { title: 'Week 10 materials · 16–22 Nov (as posted)', items: [
-   ['week-10-slides', 'Week 10 slides · Engineering Ethics and Risks'],
-   ['week-10-lecture-1', 'Week 10 Lecture 1 transcript'],
-   ['week-10-lecture-2', 'Week 10 Lecture 2 transcript'],
-   ['week-10-workshop-questions', 'Week 10 workshop questions'],
-   ['week-10-workshop-solutions', 'Week 10 workshop worked solutions'],
-  ] },
-  { title: 'Workshop recordings and assignment feedback (if available)', items: [
-   ['week-5-workshop-transcript', 'Week 5 workshop transcript or recording'],
-   ['week-7-workshop-transcript', 'Week 7 workshop transcript or recording'],
-   ['week-8-workshop-transcript', 'Week 8 workshop transcript or recording'],
-   ['week-9-workshop-transcript', 'Week 9 workshop transcript or recording'],
-   ['week-10-workshop-transcript', 'Week 10 workshop transcript or recording'],
+  { title: 'Assignment feedback (when returned)', items: [
    ['part-a-feedback', 'Part A marked feedback (when returned)'],
    ['part-b-feedback', 'Part B marked feedback (when returned)'],
   ] },
@@ -582,18 +575,21 @@ function renderTaskResults(kind) {
    <div class="task-list">${items.map(task => taskCard(task, task.code)).join('')}</div>`).join('')
   || '<div class="card empty">No matching tasks.</div>');
 }
-function materialsChecklist(groups) {
+function materialsChecklist(groups, priority) {
  return `<section class="card materials-card" aria-labelledby="materials-to-send-title">
   <header class="materials-heading">
    <h4 id="materials-to-send-title">Materials to send</h4>
    <button type="button" data-toggle-completed-materials hidden>Show completed</button>
   </header>
-  ${groups.map(({ title, items }, index) => {
+  ${priority ? `<p class="materials-note">${esc(priority)}</p>` : ''}
+  ${groups.map(({ title, note, items }, index) => {
    const list = `<ul class="materials-checklist">${items.map(([id, label]) => `<li>
     <label><input type="checkbox" data-send-material="${esc(id)}"><span>${esc(label)}</span></label>
    </li>`).join('')}</ul>`;
    return title ? `<details class="materials-group" ${index === 0 ? 'open' : ''}>
-    <summary>${esc(title)}</summary>${list}
+    <summary>${esc(title)}</summary>
+    ${note ? `<p class="materials-note">${esc(note)}</p>` : ''}
+    ${list}
    </details>` : list;
   }).join('')}
   <p class="materials-empty" hidden>All items complete.</p>
@@ -622,6 +618,7 @@ function renderInfo() {
  const selected = current();
  const panel = $('#info-panel');
  const materials = activeTerm === baseTerm && courseMaterials[selected.code];
+ const operations = activeTerm === baseTerm && selected.code === 'CVEN3101';
  setMarkup(panel, `<div class="info-grid">
   <div class="info-stack">
    <div class="card">
@@ -639,6 +636,12 @@ function renderInfo() {
     <h4>Your course notes</h4><p class="course-notes">${esc(selected.notes || 'No notes yet.')}</p>
     <button class="link-button" data-notes>Edit notes</button>
    </div>
+   ${operations ? `<section class="card" aria-labelledby="exam-prep-title">
+    <h4 id="exam-prep-title">Exam prep</h4>
+    <ul class="materials-checklist"><li><label>
+     <input type="checkbox" data-prepare-formula-sheet><span>Prepare your double-sided A4 formula sheet</span>
+    </label></li></ul>
+   </section>` : ''}
   </div>
   <div class="info-stack">
    <div class="card">
@@ -653,9 +656,13 @@ function renderInfo() {
       : 'Dates and requirements are unknown until you add the course materials.'}</p>
     </details>
    </div>
-   ${materials ? materialsChecklist(materials) : ''}
+   ${materials ? materialsChecklist(materials, operations
+    ? 'Start with the workshop questions and worked solutions for Modules 4–7.' : '') : ''}
   </div>
  </div>`);
+ if (operations) {
+  panel.querySelector('[data-prepare-formula-sheet]').checked = selected.formulaSheetPrepared === true;
+ }
  if (materials) {
   const card = panel.querySelector('.materials-card');
   const sent = sentMaterials(selected);
@@ -704,6 +711,9 @@ content.addEventListener('change', event => {
  } else if ('status' in control.dataset) {
   const { course: code, kind, status: id } = control.dataset;
   changeStatus(code, kind, id, control.value);
+ } else if ('prepareFormulaSheet' in control.dataset) {
+  current().formulaSheetPrepared = control.checked;
+  save();
  } else if ('sendMaterial' in control.dataset) {
   const selected = current();
   const sent = sentMaterials(selected);
