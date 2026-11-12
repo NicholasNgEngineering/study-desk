@@ -79,12 +79,15 @@
 .info-stack { display: grid; gap: 14px; }
 .info-grid h2 { font-size: 15px; margin: 0 0 10px; }
 .info-grid p, .info-grid li { color: #546359; }
+.materials-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; min-height: 32px; margin-bottom: 8px; }
+.materials-heading button { padding: 5px 9px; font-size: 12px; color: var(--green); }
+.materials-empty { margin: 0; }
 .info-grid .materials-checklist { margin: 0; padding: 0; list-style: none; }
-.materials-checklist li + li { border-top: 1px solid var(--line); }
+.materials-checklist li:not([hidden]) ~ li { border-top: 1px solid var(--line); }
 .materials-checklist label { display: flex; align-items: center; gap: 9px; min-height: 34px; padding: 4px 0; cursor: pointer; }
 .materials-checklist input { width: 16px; height: 16px; flex: none; margin: 0; accent-color: var(--green); }
 .materials-checklist input:checked + span { text-decoration: line-through; }
-.materials-group + .materials-group { border-top: 1px solid var(--line); }
+.materials-group:not([hidden]) ~ .materials-group { border-top: 1px solid var(--line); }
 .materials-group summary { padding: 8px 0; color: var(--green); font-weight: 600; cursor: pointer; }
 .materials-group .materials-checklist { padding-left: 14px; }
 .course-sources { margin-top: 16px; padding-top: 13px; border-top: 1px solid var(--line); }
@@ -237,6 +240,7 @@
 .course-section-header h3, .card-head h3 { margin: 0; font-size: 16px; font-weight: 650; }
 .course-section-header button { font-size: 12px; }
 #course-info .info-grid h4 { margin: 0 0 10px; font-size: 15px; }
+#course-info .materials-heading h4 { margin: 0; }
 
 @media (max-width: 760px) {
   .sidebar #side-courses { display: grid; gap: 1px; overflow: visible; }

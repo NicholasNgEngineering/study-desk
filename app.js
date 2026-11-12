@@ -583,8 +583,11 @@ function renderTaskResults(kind) {
   || '<div class="card empty">No matching tasks.</div>');
 }
 function materialsChecklist(groups) {
- return `<section class="card" aria-labelledby="materials-to-send-title">
-  <h4 id="materials-to-send-title">Materials to send</h4>
+ return `<section class="card materials-card" aria-labelledby="materials-to-send-title">
+  <header class="materials-heading">
+   <h4 id="materials-to-send-title">Materials to send</h4>
+   <button type="button" data-toggle-completed-materials hidden>Show completed</button>
+  </header>
   ${groups.map(({ title, items }, index) => {
    const list = `<ul class="materials-checklist">${items.map(([id, label]) => `<li>
     <label><input type="checkbox" data-send-material="${esc(id)}"><span>${esc(label)}</span></label>
@@ -593,7 +596,26 @@ function materialsChecklist(groups) {
     <summary>${esc(title)}</summary>${list}
    </details>` : list;
   }).join('')}
+  <p class="materials-empty" hidden>All items complete.</p>
  </section>`;
+}
+
+function updateMaterialsView(card) {
+ const showCompleted = card.classList.contains('show-completed');
+ const checkboxes = card.querySelectorAll('[data-send-material]');
+ let completed = 0;
+ for (const checkbox of checkboxes) {
+  if (checkbox.checked) completed++;
+  checkbox.closest('li').hidden = checkbox.checked && !showCompleted;
+ }
+ for (const group of card.querySelectorAll('.materials-group')) {
+  group.hidden = !group.querySelector('li:not([hidden])');
+ }
+ const toggle = card.querySelector('[data-toggle-completed-materials]');
+ if (completed === 0) card.classList.remove('show-completed');
+ toggle.hidden = completed === 0;
+ toggle.textContent = showCompleted ? 'Hide completed' : `Show completed (${completed})`;
+ card.querySelector('.materials-empty').hidden = showCompleted || completed !== checkboxes.length;
 }
 
 function renderInfo() {
@@ -635,10 +657,12 @@ function renderInfo() {
   </div>
  </div>`);
  if (materials) {
+  const card = panel.querySelector('.materials-card');
   const sent = sentMaterials(selected);
-  for (const checkbox of panel.querySelectorAll('[data-send-material]')) {
+  for (const checkbox of card.querySelectorAll('[data-send-material]')) {
    checkbox.checked = sent.has(checkbox.dataset.sendMaterial);
   }
+  updateMaterialsView(card);
  }
 }
 
@@ -659,6 +683,11 @@ content.addEventListener('click', event => {
  else if ('editInfo' in data) editInfo();
  else if ('resource' in data) editResource(Number(data.resource));
  else if ('addResource' in data) editResource(-1);
+ else if ('toggleCompletedMaterials' in data) {
+  const card = button.closest('.materials-card');
+  card.classList.toggle('show-completed');
+  updateMaterialsView(card);
+ }
 
 });
 
@@ -682,6 +711,17 @@ content.addEventListener('change', event => {
   else sent.delete(control.dataset.sendMaterial);
   selected.sentMaterials = [...sent];
   save();
+  const card = control.closest('.materials-card');
+  const hadFocus = document.activeElement === control;
+  updateMaterialsView(card);
+  if (hadFocus && control.closest('li').hidden) {
+   const siblings = [...control.closest('ul').querySelectorAll('[data-send-material]')];
+   const index = siblings.indexOf(control);
+   const next = siblings.slice(index + 1).find(checkbox => !checkbox.checked)
+    ?? siblings.slice(0, index).findLast(checkbox => !checkbox.checked)
+    ?? card.querySelector('[data-toggle-completed-materials]');
+   next.focus({ preventScroll: true });
+  }
  }
 });
 
