@@ -89,8 +89,10 @@
 .materials-checklist label { display: flex; align-items: center; gap: 9px; min-height: 34px; padding: 4px 0; cursor: pointer; }
 .materials-checklist input { width: 16px; height: 16px; flex: none; margin: 0; accent-color: var(--green); }
 .materials-checklist input:checked + span { text-decoration: line-through; }
-.materials-group:not([hidden]) ~ .materials-group { border-top: 1px solid var(--line); }
+.materials-group + .materials-group { border-top: 1px solid var(--line); }
 .materials-group summary { padding: 8px 0; color: var(--green); font-weight: 600; cursor: pointer; }
+.materials-summary { display: inline-flex; width: calc(100% - 16px); align-items: baseline; justify-content: space-between; gap: 10px; vertical-align: top; }
+.materials-count { flex: none; white-space: nowrap; color: #546359; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
 .materials-group .materials-checklist { padding-left: 14px; }
 .course-sources { margin-top: 16px; padding-top: 13px; border-top: 1px solid var(--line); }
 .task-extra { margin-top: 5px; font-size: 12px; color: #526459; }

@@ -587,9 +587,10 @@ function materialsChecklist(groups, priority) {
     <label><input type="checkbox" data-send-material="${esc(id)}"><span>${esc(label)}</span></label>
    </li>`).join('')}</ul>`;
    return title ? `<details class="materials-group" ${index === 0 ? 'open' : ''}>
-    <summary>${esc(title)}</summary>
+    <summary><span class="materials-summary"><span>${esc(title)}</span><span class="materials-count"></span></span></summary>
     ${note ? `<p class="materials-note">${esc(note)}</p>` : ''}
     ${list}
+    <p class="materials-note materials-group-complete" hidden>Use Show completed to review these items.</p>
    </details>` : list;
   }).join('')}
   <p class="materials-empty" hidden>All items complete.</p>
@@ -605,7 +606,10 @@ function updateMaterialsView(card) {
   checkbox.closest('li').hidden = checkbox.checked && !showCompleted;
  }
  for (const group of card.querySelectorAll('.materials-group')) {
-  group.hidden = !group.querySelector('li:not([hidden])');
+  const total = group.querySelectorAll('[data-send-material]').length;
+  const done = group.querySelectorAll('[data-send-material]:checked').length;
+  group.querySelector('.materials-count').textContent = `${done} of ${total} done`;
+  group.querySelector('.materials-group-complete').hidden = showCompleted || done !== total;
  }
  const toggle = card.querySelector('[data-toggle-completed-materials]');
  if (completed === 0) card.classList.remove('show-completed');
@@ -729,6 +733,7 @@ content.addEventListener('change', event => {
    const index = siblings.indexOf(control);
    const next = siblings.slice(index + 1).find(checkbox => !checkbox.checked)
     ?? siblings.slice(0, index).findLast(checkbox => !checkbox.checked)
+    ?? control.closest('.materials-group')?.querySelector('summary')
     ?? card.querySelector('[data-toggle-completed-materials]');
    next.focus({ preventScroll: true });
   }
