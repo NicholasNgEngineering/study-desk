@@ -8,6 +8,7 @@ const HTML_ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "
 const esc = value => String(value ?? '').replace(/[&<>"']/g, character => HTML_ENTITIES[character]);
 const LEGACY_KEY = 'nick-study-desk-v1';
 const KEY = 'nick-study-desk-workspace-v2';
+const SIDEBAR_KEY = 'nick-study-desk-sidebar-collapsed';
 const courseColors = { CVEN3101: '#729783', CVEN3202: '#9988b3', ENGG2500: '#b89964' };
 
 // Keep the original item IDs so saved checkmarks and backups still match.
@@ -142,6 +143,35 @@ let toastTimer;
 let calendarRenderer;
 let calendarRequest;
 let courseSectionMotion;
+
+const sidebar = $('#workspace-sidebar');
+const sidebarToggle = $('#sidebar-toggle');
+
+function setSidebarCollapsed(collapsed) {
+ sidebar.hidden = collapsed;
+ const label = collapsed ? 'Show sidebar' : 'Hide sidebar';
+ sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
+ sidebarToggle.setAttribute('aria-label', label);
+ sidebarToggle.title = label;
+}
+
+try {
+ setSidebarCollapsed(localStorage.getItem(SIDEBAR_KEY) === 'true');
+} catch {
+ // The sidebar can still be toggled when browser storage is unavailable.
+}
+sidebarToggle.addEventListener('click', () => {
+ const collapsed = !sidebar.hidden;
+ setSidebarCollapsed(collapsed);
+ if (!collapsed && matchMedia('(max-width: 760px)').matches) {
+  window.scrollTo({ top: 0, behavior: 'instant' });
+ }
+ try {
+  localStorage.setItem(SIDEBAR_KEY, String(collapsed));
+ } catch {
+  // A storage error only affects remembering the preference.
+ }
+});
 
 function readSaved(key) {
  try {
