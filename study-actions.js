@@ -1,6 +1,9 @@
 import { creditedMinutes, durationLabel, shiftStudyDate, validDuration, validStudyDate } from './study-progress.js';
 
-export function studyActions(dialog, { courses, currentDate, defaultDate, progress, escapeText, save, notify }) {
+const moveDate = new Intl.DateTimeFormat('en-AU', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+const moveDateLabel = date => moveDate.format(new Date(date + 'T12:00:00Z'));
+
+export function studyActions(dialog, { courses, currentDate, defaultDate, progress, weeks, weekRange, placeBlock, escapeText, save, notify }) {
   function show(title, content, submitLabel, submit) {
     dialog.innerHTML = `<form>
       <h2 id="study-log-title">${escapeText(title)}</h2>
@@ -89,29 +92,64 @@ export function studyActions(dialog, { courses, currentDate, defaultDate, progre
   function moveBlock(id, date) {
     const block = progress.blocks.get(id);
     const remaining = block.minutes - creditedMinutes(id, progress);
-    const tomorrow = shiftStudyDate(currentDate, 1);
+    const weekFor = value => weeks.find(week => week.days.some(day => day.date === value));
+    const currentWeek = weekFor(currentDate);
+    const startingWeek = currentWeek ?? weekFor(date) ?? weeks[0];
     const form = show('Move study block', `
-      <p><strong>${escapeText(block.title)}</strong> · ${durationLabel(remaining)} left</p>
-      <label class="field">Pick a date<input name="date" type="date" required></label>
+      <p class="study-log-next"><strong>${escapeText(block.title)}</strong><br>${moveDateLabel(date)} · ${durationLabel(remaining)} left</p>
+      <label class="field">Destination week<select name="week">
+        ${weeks.map(week => `<option value="${week.key}" ${week === startingWeek ? 'selected' : ''}>${weekRange(week)}${week === currentWeek ? ' (this week)' : ''}</option>`).join('')}
+      </select></label>
+      <div class="study-move-days" role="group" aria-label="Destination day"></div>
+      <label class="field">Or enter a date<input name="date" type="date" required></label>
       <button type="button" data-tomorrow>Tomorrow</button>
     `, 'Move block', values => {
       const destination = values.get('date');
-      if (!validStudyDate(destination) || destination === date) {
+      if (destination === date || !placeBlock(id, destination)) {
         notify('Choose a different study date.');
         return;
       }
-      const source = progress.days[date];
-      source.splice(source.indexOf(id), 1);
-      (progress.days[destination] ??= []).push(id);
-      if (progress.changes.has(id)) {
-        block.date = destination;
-      }
-      return { id, jump: true, message: 'Study block moved.' };
+      return { id, jump: true, message: 'Study block moved to ' + moveDateLabel(destination) + '.' };
     });
-    form.querySelector('[data-tomorrow]').onclick = () => {
-      form.elements.date.value = tomorrow;
-      form.elements.date.focus();
+
+    const weekPicker = form.elements.week;
+    const dateInput = form.elements.date;
+    const days = form.querySelector('.study-move-days');
+    function markDay() {
+      for (const button of days.querySelectorAll('button')) {
+        button.setAttribute('aria-pressed', String(button.value === dateInput.value));
+      }
+    }
+    function renderDays() {
+      const week = weeks.find(item => item.key === weekPicker.value);
+      days.innerHTML = (week?.days ?? []).map(({ date: value }) =>
+        `<button type="button" value="${value}" ${value === date ? 'disabled title="Current date of this block"' : ''}>${moveDateLabel(value)}</button>`).join('');
+      markDay();
+    }
+    function syncDate() {
+      const week = weekFor(dateInput.value);
+      if (week && week.key !== weekPicker.value) {
+        weekPicker.value = week.key;
+        renderDays();
+      } else markDay();
+    }
+    days.onclick = event => {
+      const button = event.target.closest('button');
+      if (!button || button.disabled) return;
+      dateInput.value = button.value;
+      markDay();
     };
+    weekPicker.onchange = () => {
+      dateInput.value = '';
+      renderDays();
+    };
+    dateInput.oninput = syncDate;
+    form.querySelector('[data-tomorrow]').onclick = () => {
+      dateInput.value = shiftStudyDate(currentDate, 1);
+      syncDate();
+      dateInput.focus();
+    };
+    renderDays();
   }
 
   function mockResult(id) {
@@ -156,5 +194,5 @@ export function studyActions(dialog, { courses, currentDate, defaultDate, progre
     if (mockButton) mockButton.onclick = () => mockResult(id);
   }
 
-  return { editBlock, mockResult, options };
+  return { editBlock, mockResult, moveBlock, options };
 }

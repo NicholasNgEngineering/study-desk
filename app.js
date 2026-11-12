@@ -375,7 +375,7 @@ function loadCalendarStyle() {
   const link = document.createElement('link');
   link.id = 'study-calendar-style';
   link.rel = 'stylesheet';
-  link.href = './study-calendar.css';
+  link.href = './study-calendar.css?v=move-between-weeks-20261112';
   link.onload = resolve;
   link.onerror = () => {
    link.remove();
@@ -392,7 +392,7 @@ function showCalendar(tasks, date) {
  }
  calendarRoot.innerHTML = '<p role="status">Loading Study Calendar…</p>';
  if (calendarRequest) return;
- calendarRequest = Promise.all([import('./study-calendar.js'), loadCalendarStyle()])
+ calendarRequest = Promise.all([import('./study-calendar.js?v=move-between-weeks-20261112'), loadCalendarStyle()])
   .then(([module]) => {
    calendarRenderer = module.renderStudyCalendar;
    if (view === 'calendar') renderCalendar();

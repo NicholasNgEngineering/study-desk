@@ -1,6 +1,6 @@
 import { exams } from './study-plan.js';
 import { calendarWeeks, creditedMinutes, durationLabel, mockFocus, pendingStudyBlocks, saveStudyProgress, validStudyDate } from './study-progress.js';
-import { studyActions } from './study-actions.js';
+import { studyActions } from './study-actions.js?v=move-between-weeks-20261112';
 
 let selectedTerm;
 let selectedWeek;
@@ -321,8 +321,8 @@ export function renderStudyCalendar(root, options, progress, jumpBlock) {
     const swapGuide = root.querySelector('.study-swap-guide');
     swapGuide.classList.toggle('study-swap-active', Boolean(picked));
     setMarkup(swapGuide, picked
-      ? `<span><strong>${escapeText(picked.title)}</strong> selected. Choose a handle to swap or an insertion point.</span><button type="button" data-study-cancel>Cancel</button>`
-      : '<span>Drag or select a handle. Drop on a block to swap, or in a gap to insert.</span>');
+      ? `<span><strong>${escapeText(picked.title)}</strong> selected. Choose a handle to swap or an insertion point.</span><div class="study-swap-actions"><button type="button" data-study-move>Move to…</button><button type="button" data-study-cancel>Cancel</button></div>`
+      : '<span>Drag to reorder, or use ⋯ → Move to… to move a block to another week.</span>');
     updateRows(root.querySelector('.study-agenda'),
       week.days.map((day, index) => renderDay(day, daily[index], tasks, currentDate, escapeText, mocks)));
   }
@@ -338,7 +338,7 @@ export function renderStudyCalendar(root, options, progress, jumpBlock) {
   }
 
   const actions = studyActions(root.querySelector('.study-log-dialog'), {
-    courses, currentDate, progress, escapeText, notify,
+    courses, currentDate, progress, weeks, weekRange, placeBlock, escapeText, notify,
     defaultDate: week && currentWeek === week ? currentDate : week?.days[0].date ?? '',
     save(id, jump) {
       selectedBlock = undefined;
@@ -372,15 +372,21 @@ export function renderStudyCalendar(root, options, progress, jumpBlock) {
     notify('Study blocks swapped.');
   }
 
-  function insert(id, date, before) {
-    if (blocks.get(id)?.kind !== 'study' || id === before || !validStudyDate(date)) return;
+  function placeBlock(id, date, before) {
+    if (blocks.get(id)?.kind !== 'study' || id === before || !validStudyDate(date)) return false;
     const source = findBlock(id);
-    const destination = progress.days[date] ??= [];
-    if (before && !destination.includes(before)) return;
+    const destination = progress.days[date] ?? [];
+    if (!source || (before && !destination.includes(before))) return false;
     source.ids.splice(source.index, 1);
     const index = before ? destination.indexOf(before) : destination.length;
     destination.splice(index, 0, id);
+    progress.days[date] = destination;
     if (progress.changes.has(id)) blocks.get(id).date = date;
+    return true;
+  }
+
+  function insert(id, date, before) {
+    if (!placeBlock(id, date, before)) return;
     selectedBlock = undefined;
     saveProgress(`[data-study-swap="${id}"]`);
     notify('Study block moved.');
@@ -460,6 +466,10 @@ export function renderStudyCalendar(root, options, progress, jumpBlock) {
     const blockOptions = event.target.closest('[data-study-options]');
     if (blockOptions) {
       actions.options(blockOptions.dataset.studyOptions, blockOptions.closest('[data-study-date]').dataset.studyDate);
+      return;
+    }
+    if (event.target.closest('[data-study-move]') && selectedBlock) {
+      actions.moveBlock(selectedBlock, findBlock(selectedBlock).date);
       return;
     }
     const mock = event.target.closest('[data-study-mock]');
