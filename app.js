@@ -145,10 +145,14 @@ let calendarRequest;
 let courseSectionMotion;
 
 const sidebar = $('#workspace-sidebar');
+const sidebarApp = sidebar.closest('.app');
 const sidebarToggle = $('#sidebar-toggle');
+const reducedSidebarMotion = matchMedia('(prefers-reduced-motion: reduce)');
+let sidebarArrowMotion;
 
 function setSidebarCollapsed(collapsed) {
- sidebar.hidden = collapsed;
+ sidebarApp.classList.toggle('sidebar-collapsed', collapsed);
+ sidebar.inert = collapsed;
  const label = collapsed ? 'Show sidebar' : 'Hide sidebar';
  sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
  sidebarToggle.setAttribute('aria-label', label);
@@ -161,10 +165,20 @@ try {
  // The sidebar can still be toggled when browser storage is unavailable.
 }
 sidebarToggle.addEventListener('click', () => {
- const collapsed = !sidebar.hidden;
+ const collapsed = !sidebar.inert;
+ const start = sidebarToggle.getBoundingClientRect();
+ sidebarArrowMotion?.cancel();
+ sidebarApp.classList.add('sidebar-motion');
  setSidebarCollapsed(collapsed);
  if (!collapsed && matchMedia('(max-width: 760px)').matches) {
   window.scrollTo({ top: 0, behavior: 'instant' });
+ }
+ if (!reducedSidebarMotion.matches) {
+  const end = sidebarToggle.getBoundingClientRect();
+  sidebarArrowMotion = sidebarToggle.animate([
+   { transform: `translate(${start.left - end.left}px, ${start.top - end.top}px)` },
+   { transform: 'none' },
+  ], { duration: 220, easing: 'ease-in-out' });
  }
  try {
   localStorage.setItem(SIDEBAR_KEY, String(collapsed));

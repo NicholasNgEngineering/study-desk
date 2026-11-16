@@ -5,8 +5,11 @@
 
 [hidden] { display: none !important; }
 .app { --topbar-height: 73px; position: relative; }
+.sidebar-frame { display: contents; }
 .sidebar { overflow-y: auto; padding-bottom: 21px; }
-.sidebar[hidden] ~ main { width: 100%; margin-left: 0; }
+.sidebar-collapsed > main { width: 100%; margin-left: 0; }
+.sidebar-collapsed .sidebar { transform: translateX(-100%); visibility: hidden; }
+.sidebar-toggle-slot { z-index: 6; }
 .sidebar-toggle {
   position: fixed;
   z-index: 6;
@@ -37,8 +40,17 @@
 }
 .sidebar-toggle[aria-expanded="false"] { position: sticky; top: 12px; left: auto; pointer-events: auto; }
 .sidebar-toggle[aria-expanded="false"]::before { transform: translateX(-1px) rotate(225deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .sidebar-motion > main { transition: width 220ms ease-in-out, margin-left 220ms ease-in-out; }
+  .sidebar-motion .sidebar { transition: transform 220ms ease-in-out, visibility 0s; }
+  .sidebar-motion.sidebar-collapsed .sidebar { transition-delay: 0s, 220ms; }
+  .sidebar-motion .sidebar-toggle::before { transition: transform 220ms ease-in-out; }
+}
 @media (max-width: 1180px) {
-  .sidebar[hidden] ~ main :is(.topbar, .content) { padding-left: 37px; }
+  .sidebar-collapsed > main :is(.topbar, .content) { padding-left: 37px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .sidebar-motion > main :is(.topbar, .content) { transition: padding-left 220ms ease-in-out; }
+  }
 }
 .workspace-nav { margin-top: 29px; }
 .nav { font-size: 13px; }
@@ -139,7 +151,13 @@
 }
 @media (max-width: 760px) {
   .app { --topbar-height: 49px; }
-  .sidebar { border-right: 0; border-bottom: 1px solid var(--line); padding: 12px 14px; }
+  .sidebar-frame { display: grid; grid-template-rows: minmax(0, 1fr); overflow: clip; }
+  .sidebar-collapsed .sidebar-frame { grid-template-rows: minmax(0, 0fr); }
+  .sidebar { align-self: start; border-right: 0; border-bottom: 1px solid var(--line); padding: 12px 14px; }
+  .sidebar-collapsed .sidebar { transform: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    .sidebar-motion .sidebar-frame { transition: grid-template-rows 220ms ease-in-out; }
+  }
   .sidebar-toggle[aria-expanded="true"] { position: absolute; left: auto; right: 12px; top: 14px; }
   .sidebar-toggle[aria-expanded="false"] { top: 10px; }
   .sidebar nav { margin-top: 8px; }
