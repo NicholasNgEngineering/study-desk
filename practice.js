@@ -406,18 +406,12 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
     : allCorrect && missed && isDue ? 'Correct on retry.' : messages[0];
    let guidance = '';
    if (multi && !answered) guidance = ' Answer every part to finish checking.';
-   else if (answered && missed && isDue) guidance = ' Choose Again to review it later today.';
    else if (answered && !allCorrect) guidance = ' Try again or check the working.';
    feedback.dataset.result = allCorrect ? 'correct' : 'incorrect';
    feedback.textContent = summary + guidance;
    feedback.hidden = false;
    if (answered) panel.querySelector('.practice-working').hidden = false;
-   if (ratings) {
-    ratings.hidden = !answered;
-    for (const button of ratings.querySelectorAll('button')) {
-     button.disabled = missed && button.dataset.practiceRating !== 'Again';
-    }
-   }
+   if (ratings) ratings.hidden = !answered;
    if (allCorrect && !solved.has(question.id)) {
     solved.add(question.id);
     updatePractice({ solved: [...solved] });
