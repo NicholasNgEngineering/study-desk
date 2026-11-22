@@ -24,6 +24,21 @@ const fluidsWeekOne = [
   answer: 'B', working: 'At the free surface, the absolute pressure equals the local atmospheric pressure. Gauge pressure is the difference between these pressures, so it is zero.' },
 ].map((question, index) => ({ ...question, id: 'engg2500-w1-' + (index + 1) }));
 
+const fluidsWeekTwo = [{
+ id: 'engg2500-w2-inclined-gate',
+ topic: 'Inclined gate',
+ prompt: 'A rectangular gate is 2.0 m long along its slope and 1.0 m wide. It sits at 30° to the horizontal, with its top edge 1.0 m vertically below the water surface. The gate is hinged along its top edge. Atmospheric pressure cancels between the two sides.\n\nUse water density ρ = 1000 kg/m³ and g = 9.81 m/s². Find the four quantities below. Measure both depths vertically below the water surface and give the magnitude of the moment. Use DEG mode on your calculator and keep full precision until your final answers.',
+ parts: [
+  { label: 'Vertical depth to the gate’s centre, h_C', unit: 'm', answer: 1.5, tolerance: 0.005 },
+  { label: 'Resultant water force, F_R', unit: 'N', answer: 29430, tolerance: 1 },
+  { label: 'Vertical depth to the centre of pressure, h_CP', unit: 'm', answer: 14/9, tolerance: 0.005 },
+  { label: 'Water force’s moment about the top hinge, M', unit: 'N·m', answer: 32700, tolerance: 5 },
+ ],
+ working: 'A. Centre depth\nh_C = h_top + (L/2) sin θ = 1.0 + (2.0/2) sin 30° = 1.5 m.\n\nB. Resultant water force\nA = Lb = 2.0 × 1.0 = 2.0 m².\nF_R = ρgh_CA = 1000 × 9.81 × 1.5 × 2.0 = 29,430 N.\n\nC. Centre of pressure\nI_C = bL³/12 = 1.0 × 2.0³/12 = 0.6666667 m⁴.\nh_CP = h_C + I_C sin² θ/(Ah_C) = 1.5 + (0.6666667 × 0.25)/(2.0 × 1.5) = 1.5555556 m. This rounds to 1.556 m or 1.56 m.\n\nD. Moment about the top hinge\nThe force acts perpendicular to the gate at the centre of pressure. The moment arm d is the distance along the gate from the hinge to that point.\nd = (h_CP − h_top)/sin 30° = (1.5555556 − 1.0)/0.5 = 1.1111111 m.\nM = F_R d = 29,430 × 1.1111111 = 32,700 N·m using full precision.\n\nThe diagram rounds the vertical drop to 0.5556 m. Use the full-precision centre of pressure when calculating the moment.',
+ workingImage: 'inclined-gate-working.png',
+ workingImageAlt: 'Inclined gate at 30 degrees with its top hinge 1 metre below the water surface. The water force acts perpendicular to the gate at the centre of pressure. Its moment arm d runs along the gate from the hinge.',
+}];
+
 export function practiceWeeks(course) {
  return course?.weeks.filter(week => week.status !== 'N/A').map(({ week }) => week) ?? [];
 }
@@ -51,7 +66,7 @@ const validParts = parts => Array.isArray(parts) && parts.length >= minParts && 
 
 export function practiceQuestions(state, code, week, starter, includeRemoved = false) {
  const imported = state.practice?.sets?.[code + '/' + week];
- const base = starter && code === 'ENGG2500' && week === 1 ? fluidsWeekOne : [];
+ const base = starter && code === 'ENGG2500' ? ({ 1: fluidsWeekOne, 2: fluidsWeekTwo }[week] ?? []) : [];
  const questions = base.concat(Array.isArray(imported) ? imported.filter(question =>
   typeof question?.id === 'string' && typeof question.prompt === 'string' &&
   (question.parts == null ? validAnswer(question)
@@ -354,7 +369,7 @@ export function renderPractice(root, { state, course, week, starter, escape: esc
     ${isDue ? '' : `<p class="practice-next-review">Next review ${formatReviewDate(review.due)}.</p>`}
     <form>${answerFields(question, esc)}</form>
     <p class="practice-feedback" role="status" hidden></p>
-    <details class="practice-working" hidden><summary>Show working</summary><p>${esc(question.working)}</p></details>
+    <details class="practice-working" hidden><summary>Show working</summary><p>${esc(question.working)}</p>${question.workingImage ? `<img src="${esc(question.workingImage)}" alt="${esc(question.workingImageAlt)}" loading="lazy" style="display:block;max-width:100%;height:auto;margin-top:16px">` : ''}</details>
     ${isDue ? `<fieldset class="practice-ratings" hidden><legend>How did it go?</legend>${reviewRatings.map(rating => {
      const { interval } = nextPracticeReview(review, rating, date);
      return `<button type="button" data-practice-rating="${rating}">${rating}<small>${interval === 0 ? 'Today' : interval + (interval === 1 ? ' day' : ' days')}</small></button>`;
