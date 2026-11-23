@@ -1,4 +1,4 @@
-import { studyWeeks } from './study-plan.js';
+import { operationsFinalPlan, studyWeeks } from './study-plan.js?v=cven3101-modules-20261123';
 
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 const customId = /^custom-[a-f0-9-]{36}$/;
@@ -106,7 +106,25 @@ export function readStudyProgress(saved, useSeed) {
     const result = saved?.mocks?.[id];
     if (block.mock && validMock(result)) mocks.set(id, result);
   }
-  return { days, blocks, changes, completed, logged, mocks };
+  let operationsFinalPlanApplied = saved?.operationsFinalPlanApplied === true;
+  if (useSeed && !operationsFinalPlanApplied) {
+    for (const [id, date, session] of [...operationsFinalPlan].reverse()) {
+      // Keep edits, moved blocks, and any credit or mock results from the previous plan.
+      const originalDate = seedDates.get(id);
+      const originalDay = days[originalDate];
+      const index = originalDay.indexOf(id);
+      if (index === -1 || changes.has(id) || completed.has(id) || logged.has(id) || mocks.has(id)) continue;
+      const block = { ...session, date, mock: session.mock === true };
+      if (date !== originalDate) {
+        originalDay.splice(index, 1);
+        (days[date] ??= []).unshift(id);
+      }
+      blocks.set(id, block);
+      changes.set(id, block);
+    }
+    operationsFinalPlanApplied = true;
+  }
+  return { days, blocks, changes, completed, logged, mocks, operationsFinalPlanApplied };
 }
 
 export function saveStudyProgress(progress) {
@@ -117,6 +135,7 @@ export function saveStudyProgress(progress) {
     completed: [...progress.completed],
     logged: Object.fromEntries(progress.logged),
     mocks: Object.fromEntries(progress.mocks),
+    ...(progress.operationsFinalPlanApplied ? { operationsFinalPlanApplied: true } : {}),
   };
 }
 

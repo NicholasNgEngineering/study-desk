@@ -1,5 +1,5 @@
 import { practiceQuestions, practiceWeeks, renderPractice } from './practice.js?v=inclined-gate-20261122';
-import { durationLabel, pendingStudyBlocks, readStudyProgress, weeklyBlockProgress } from './study-progress.js';
+import { durationLabel, pendingStudyBlocks, readStudyProgress, saveStudyProgress, weeklyBlockProgress } from './study-progress.js?v=cven3101-modules-20261123';
 import { baseTerm, blankTerm, courseCodePattern, isTermId, makeWorkspace, nextTerm, statuses, termLabel, validTerm, validWorkspace } from './workspace.js';
 
 const $ = selector => document.querySelector(selector);
@@ -12,14 +12,19 @@ const SIDEBAR_KEY = 'nick-study-desk-sidebar-collapsed';
 const courseColors = { CVEN3101: '#729783', CVEN3202: '#9988b3', ENGG2500: '#b89964' };
 
 // Keep the original item IDs so saved checkmarks and backups still match.
-const operationsModules = [
+const operationsFinalModules = [
  { number: 4, week: 5, title: 'Contract Management', lectures: 1 },
  { number: 5, week: 7, title: 'Conceptual Cost Estimation', lectures: 2 },
  { number: 6, week: 8, title: 'Earthwork and Foundation Cost Estimation', lectures: 2 },
  { number: 7, week: 9, title: 'Construction Safety and Quality Management', lectures: 2 },
  { number: 8, week: 10, title: 'Engineering Ethics and Risks', lectures: 2,
   note: 'The Moodle screenshot shows this module locked and lists the Module 7 Safety and Quality quiz as a prerequisite.' },
-].map(({ number, week, title, lectures, note }) => {
+];
+const operationsModuleNumbers = new Map([
+ [1, 1], [2, 1], [3, 2], [4, 3],
+ ...operationsFinalModules.map(({ week, number }) => [week, number]),
+]);
+const operationsModules = operationsFinalModules.map(({ number, week, title, lectures, note }) => {
  const id = 'week-' + week;
  return {
   title: `Module ${number} · ${title}`,
@@ -258,8 +263,44 @@ function courseWeeks(item) {
  });
 }
 
+function usesModules(code, term = activeTerm) {
+ return term === baseTerm && code === 'CVEN3101';
+}
+
+function courseChecklist(item) {
+ const weeks = courseWeeks(item);
+ if (!usesModules(item.code)) return weeks;
+ const groups = new Map();
+ for (const week of weeks) {
+  const module = operationsModuleNumbers.get(week.week);
+  if (!module) continue;
+  if (!groups.has(module)) groups.set(module, []);
+  groups.get(module).push(week);
+ }
+ return [...groups].sort(([a], [b]) => a - b).map(([module, entries]) => {
+  const [first, last] = entries;
+  const { done, total } = summarize(entries);
+  const status = !total ? 'N/A' : done === total ? 'Done'
+   : entries.some(entry => entry.status === 'In progress' || entry.status === 'Done') ? 'In progress' : 'Not started';
+  return {
+   ...first, module, status, entries,
+   lastDate: last?.date,
+   notes: [...new Set(entries.map(entry => entry.notes).filter(Boolean))].join(' · '),
+  };
+ });
+}
+
 function refreshChecklist() {
  studyProgress = readStudyProgress(state.studyCalendar, activeTerm === baseTerm);
+ if (activeTerm === baseTerm && state.studyCalendar?.operationsFinalPlanApplied !== true) {
+  const operations = state.courses.find(item => item.code === 'CVEN3101');
+  const conceptual = operations.weeks.find(week => week.week === 7);
+  const earthworks = operations.weeks.find(week => week.week === 8);
+  if (conceptual && conceptual.status !== 'N/A') conceptual.status = 'Done';
+  if (earthworks?.status === 'Not started') earthworks.status = 'In progress';
+  state.studyCalendar = saveStudyProgress(studyProgress);
+  save();
+ }
  linkedWeeks = weeklyBlockProgress(studyProgress);
 }
 
@@ -332,7 +373,8 @@ function render() {
 }
 
 function sectionLink(code, section) {
- return `<a href="${courseHash(code, section)}" data-jump-course="${code}" data-jump-section="${section}">${sectionLabels[section]}</a>`;
+ const label = section === 'weekly' && usesModules(code) ? 'Module checklist' : sectionLabels[section];
+ return `<a href="${courseHash(code, section)}" data-jump-course="${code}" data-jump-section="${section}">${label}</a>`;
 }
 
 function renderCourseNav() {
@@ -368,7 +410,11 @@ function renderCalendar(tasks = allTasks(), currentDate = today()) {
  calendarJump = undefined;
  calendarRenderer(calendarRoot, {
   tasks,
-  get courses() { return state.courses.map(item => ({ ...item, weeks: courseWeeks(item) })); },
+  get courses() {
+   return state.courses.map(item => ({
+    ...item, weeks: courseWeeks(item), modules: usesModules(item.code) ? courseChecklist(item) : undefined,
+   }));
+  },
   currentDate,
   escapeText: esc,
   term: activeTerm,
@@ -389,7 +435,7 @@ function loadCalendarStyle() {
   const link = document.createElement('link');
   link.id = 'study-calendar-style';
   link.rel = 'stylesheet';
-  link.href = './study-calendar.css?v=move-between-weeks-20261112';
+  link.href = './study-calendar.css?v=cven3101-modules-20261123';
   link.onload = resolve;
   link.onerror = () => {
    link.remove();
@@ -406,7 +452,7 @@ function showCalendar(tasks, date) {
  }
  calendarRoot.innerHTML = '<p role="status">Loading Study Calendar…</p>';
  if (calendarRequest) return;
- calendarRequest = Promise.all([import('./study-calendar.js?v=move-between-weeks-20261112'), loadCalendarStyle()])
+ calendarRequest = Promise.all([import('./study-calendar.js?v=cven3101-modules-20261123'), loadCalendarStyle()])
   .then(([module]) => {
    calendarRenderer = module.renderStudyCalendar;
    if (view === 'calendar') renderCalendar();
@@ -432,13 +478,13 @@ function renderOverview(tasks, open, due, date) {
    <strong>${esc(next.block.title)}</strong>
   </div><button type="button" class="primary" data-resume-block="${next.id}">Resume studying</button>`);
  const week = currentWeek(date);
- const weekSummary = summarize(state.courses.flatMap(courseWeeks));
+ const weekSummary = summarize(state.courses.flatMap(courseChecklist));
  const taskSummary = summarize(tasks);
  $('#overview-term').textContent = termLabel(activeTerm).toUpperCase();
  $('#week-label').textContent = activeTerm !== baseTerm ? ''
   : week > 0 && week <= 11 ? '· WEEK ' + week : '· REVISION & EXAMS';
  setMarkup($('#stats'), `<div class="stat">
-   <div class="stat-label">Study weeks finished</div>
+   <div class="stat-label">${activeTerm === baseTerm ? 'Study checklist items finished' : 'Study weeks finished'}</div>
    <div class="stat-value">${weekSummary.done}<small>/ ${weekSummary.total}</small></div>
    <div class="mini-bar"><i style="width:${weekSummary.percent}%"></i></div>
   </div><div class="stat">
@@ -451,13 +497,13 @@ function renderOverview(tasks, open, due, date) {
    <div class="stat-foot">${open.filter(task => !task.date).length} tasks with dates to confirm</div>
   </div>`);
  setMarkup($('#course-tabs'), state.courses.map(item => {
-  const { total, done, percent } = summarize(courseWeeks(item));
+  const { total, done, percent } = summarize(courseChecklist(item));
   return `<a href="${courseHash(item.code)}" class="course-tab" ${item.code === course ? 'aria-current="true"' : ''} data-jump-course="${item.code}" data-jump-section="weekly" style="--course:${color(item.code)}">
     <div class="course-tile-name">
      <span class="tab-code">${courseDot}${item.code}</span>
      <strong>${esc(item.name)}</strong>
     </div>
-    <div class="course-tile-progress"><span>${done}/${total} weeks</span><span class="mini-bar"><i style="width:${percent}%"></i></span></div>
+    <div class="course-tile-progress"><span>${done}/${total} ${usesModules(item.code) ? 'modules' : 'weeks'}</span><span class="mini-bar"><i style="width:${percent}%"></i></span></div>
     <span class="course-tile-arrow" aria-hidden="true">›</span>
    </a>`;
  }).join('') || '<div class="card empty">No courses added yet.</div>');
@@ -466,14 +512,14 @@ function renderOverview(tasks, open, due, date) {
 
 function renderCourseArea(section) {
  const selected = current();
- const { total, done, percent } = summarize(courseWeeks(selected));
+ const { total, done, percent } = summarize(courseChecklist(selected));
  const codeLabel = $('#course-code');
  const tabs = $('#section-tabs');
  const previousSection = tabs.querySelector('[aria-current]')?.dataset.jumpSection;
  const changed = previousSection && (codeLabel.textContent !== selected.code || previousSection !== section);
  codeLabel.textContent = selected.code;
  $('#course-name').textContent = selected.name;
- $('#course-progress').innerHTML = `<strong>${percent}% complete</strong>${done} of ${total} study weeks finished`;
+ $('#course-progress').innerHTML = `<strong>${percent}% complete</strong>${done} of ${total} ${usesModules(selected.code) ? 'modules' : 'study weeks'} finished`;
  setMarkup(tabs, Object.keys(courseSections).map(section => sectionLink(selected.code, section)).join(''));
  updateSectionLinks(tabs, section);
  for (const key of Object.keys(courseSections)) {
@@ -505,22 +551,24 @@ function matchesTask(task, filter, search) {
 function renderWeeks() {
  const selected = current();
  const weekNumber = currentWeek();
- const weeks = courseWeeks(selected).filter(week => weekFilter === 'all'
+ const modules = usesModules(selected.code);
+ const label = modules ? 'Module' : 'Week';
+ const weeks = courseChecklist(selected).filter(week => weekFilter === 'all'
   || (weekFilter === 'done' && week.status === 'Done')
   || (weekFilter === 'outstanding' && isOpen(week)));
  setMarkup(weeklyPanel, `<div class="card">
-  <div class="card-head"><h3 id="weekly-title">Weekly checklist</h3>${filterMenu(weekFilter, 'weeks')}</div>
+  <div class="card-head"><h3 id="weekly-title">${modules ? 'Module checklist' : 'Weekly checklist'}</h3>${filterMenu(weekFilter, 'weeks')}</div>
   <div class="table-scroll"><table>
-   <thead><tr><th>Week</th><th>Topics & notes</th><th>Status</th><th><span class="sr-only">Edit</span></th></tr></thead>
+   <thead><tr><th>${label}</th><th>Topics & notes</th><th>Status</th><th><span class="sr-only">Edit</span></th></tr></thead>
    <tbody>${weeks.map(week => `<tr class="${week.status === 'Done' ? 'done-row' : week.status === 'N/A' ? 'na-row' : ''}">
-     <td class="week-cell"><span class="week-name">Week ${week.week}</span><span class="week-date">${dateText(week.date)}</span>
+     <td class="week-cell"><span class="week-name">${label} ${week.module ?? week.week}</span><span class="week-date">${dateText(week.date)}${week.lastDate && week.lastDate !== week.date ? ' – ' + dateText(week.lastDate) : ''}</span>
       ${practiceQuestions(state, selected.code, week.week, activeTerm === baseTerm).length
-       ? `<a class="week-practice-link" href="${routeHash('practice', selected.code, activeTerm, week.week)}">Practise<span class="sr-only"> Week ${week.week}</span></a>` : ''}${week.week === weekNumber ? '<span class="current-tag">THIS WEEK</span>' : ''}</td>
+       ? `<a class="week-practice-link" href="${routeHash('practice', selected.code, activeTerm, week.week)}">Practise<span class="sr-only"> ${label} ${week.module ?? week.week}</span></a>` : ''}${!modules && week.week === weekNumber ? '<span class="current-tag">THIS WEEK</span>' : ''}</td>
      <td class="topic">${esc(week.title)}${week.notes ? `<span class="row-notes">${esc(week.notes)}</span>` : ''}
-      ${calendarWeekNote(week, selected.code)}</td>
+      ${(week.entries ?? [week]).map(entry => calendarWeekNote(entry, selected.code)).join('')}</td>
      <td><div class="status-wrap">${week.status === 'N/A' ? '' : quickCheck(week, 'weeks', selected.code)}${statusSelect(week, 'weeks', selected.code)}</div></td>
-     <td><button class="edit-small" data-edit="${esc(week.id)}" data-kind="weeks" data-course="${selected.code}" aria-label="Edit Week ${week.week} notes">⋯</button></td>
-    </tr>`).join('') || '<tr><td colspan="4" class="empty">No weeks match this view.</td></tr>'}</tbody>
+     <td><button class="edit-small" data-edit="${esc(week.id)}" data-kind="weeks" data-course="${selected.code}" aria-label="Edit ${label} ${week.module ?? week.week} notes">⋯</button></td>
+    </tr>`).join('') || `<tr><td colspan="4" class="empty">No ${modules ? 'modules' : 'weeks'} match this view.</td></tr>`}</tbody>
   </table></div>
  </div>`);
 }
@@ -793,13 +841,15 @@ content.addEventListener('input', event => {
 
 function changeStatus(code, kind, id, value) {
  const item = state.courses.find(candidate => candidate.code === code);
- const entry = item[kind].find(candidate => candidate.id === id);
- const effective = kind === 'weeks' ? courseWeeks(item).find(week => week.id === id) : entry;
- entry.status = value || (effective.status === 'Done' ? 'Not started' : 'Done');
- if (kind === 'tasks') entry.assumed = false;
- else {
-  const progress = effective.calendarProgress;
-  if (entry.status !== 'Done' && entry.status !== 'N/A' && progress && progress.done === progress.total) {
+ const effective = (kind === 'weeks' ? courseChecklist(item) : item.tasks).find(entry => entry.id === id);
+ const status = value || (effective.status === 'Done' ? 'Not started' : 'Done');
+ for (const row of effective.entries ?? [effective]) {
+  const entry = item[kind].find(candidate => candidate.id === row.id);
+  entry.status = status;
+  const progress = row.calendarProgress;
+  if (kind === 'tasks') {
+   entry.assumed = false;
+  } else if (status !== 'Done' && status !== 'N/A' && progress && progress.done === progress.total) {
    entry.calendarOverride = true;
   } else {
    delete entry.calendarOverride;
@@ -815,8 +865,9 @@ function editItem(code, kind, id) {
  const selected = state.courses.find(item => item.code === code);
  const item = selected[kind].find(entry => entry.id === id);
  if (kind === 'weeks') {
-  showEditor('Week ' + item.week + ' notes',
-   field('title', 'Topics', item.title) + field('date', 'Week start date · optional', item.date ?? '', 'date')
+  const module = usesModules(code) ? operationsModuleNumbers.get(item.week) : undefined;
+  showEditor((module ? 'Module ' + module : 'Week ' + item.week) + ' notes',
+   field('title', 'Topics', item.title) + field('date', module ? 'Start date · optional' : 'Week start date · optional', item.date ?? '', 'date')
     + field('notes', 'Study notes', item.notes, 'textarea'),
    form => {
     item.title = form.get('title').trim();
@@ -881,7 +932,7 @@ function showCourseEditor() {
 function routeHash(nextView, nextCourse, term, week) {
  const prefix = term === baseTerm ? '' : 'term/' + term;
  const destination = Object.hasOwn(courseSections, nextView)
-  ? 'course/' + nextCourse.toLowerCase() + '/' + courseSections[nextView]
+  ? 'course/' + nextCourse.toLowerCase() + '/' + (nextView === 'weekly' && usesModules(nextCourse, term) ? 'modules' : courseSections[nextView])
   : nextView === 'calendar' ? 'study-calendar' : nextView === 'deadlines' ? 'deadlines'
   : nextView === 'practice' ? (nextCourse && week ? 'practice/' + nextCourse.toLowerCase() + '/' + week : 'practice') : '';
  const path = [prefix, destination].filter(Boolean).join('/');
@@ -907,10 +958,10 @@ function readRoute() {
  if (path === 'practice' || practice) {
   return { view: 'practice', term, course: practice?.[1].toUpperCase(), week: Number(practice?.[2]) };
  }
- const parts = path.match(/^course\/([a-z]{4}\d{4})\/(weeks|assessments|info)$/);
+ const parts = path.match(/^course\/([a-z]{4}\d{4})\/(weeks|modules|assessments|info)$/);
  const code = parts?.[1].toUpperCase();
- if (code && workspace.terms[term].courses.some(item => item.code === code)) {
-  const section = Object.keys(courseSections).find(key => courseSections[key] === parts[2]);
+ if (code && (parts[2] !== 'modules' || usesModules(code, term)) && workspace.terms[term].courses.some(item => item.code === code)) {
+  const section = Object.keys(courseSections).find(key => courseSections[key] === (parts[2] === 'modules' ? 'weeks' : parts[2]));
   return { view: section, course: code, term };
  }
  return { view: 'overview', term };

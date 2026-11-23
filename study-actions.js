@@ -1,4 +1,4 @@
-import { creditedMinutes, durationLabel, shiftStudyDate, validDuration, validStudyDate } from './study-progress.js';
+import { creditedMinutes, durationLabel, shiftStudyDate, validDuration, validStudyDate } from './study-progress.js?v=cven3101-modules-20261123';
 
 const moveDate = new Intl.DateTimeFormat('en-AU', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
 const moveDateLabel = date => moveDate.format(new Date(date + 'T12:00:00Z'));
@@ -61,7 +61,7 @@ export function studyActions(dialog, { courses, currentDate, defaultDate, progre
         return;
       }
       const selected = courses.find(course => course.code === code);
-      const linked = values.getAll('weeks').map(Number);
+      const linked = values.getAll('weeks').flatMap(value => value.split(',').map(Number));
       const checklistWeeks = selected?.weeks.filter(week => week.status !== 'N/A' && linked.includes(week.week))
         .map(week => week.week) ?? [];
       const blockId = id ?? 'custom-' + crypto.randomUUID();
@@ -76,12 +76,18 @@ export function studyActions(dialog, { courses, currentDate, defaultDate, progre
 
     function showLinks() {
       const selected = courses.find(course => course.code === form.elements.course.value);
-      const weeks = selected?.weeks.filter(week => week.status !== 'N/A') ?? [];
+      const entries = (selected?.modules ?? selected?.weeks ?? []).filter(entry => entry.status !== 'N/A');
+      const label = selected?.modules ? 'Module' : 'Week';
       const linked = selected?.code === block?.course ? block?.checklistWeeks ?? [] : [];
-      form.querySelector('.study-week-links').innerHTML = weeks.length ? `<details ${linked.length ? 'open' : ''}>
-        <summary>Linked checklist weeks${linked.length ? ' · ' + linked.join(', ') : ' (optional)'}</summary>
-        <div class="study-week-link-options">${weeks.map(({ week, title }) => `<label class="study-form-check" title="${escapeText(title)}">
-          <input type="checkbox" name="weeks" value="${week}" ${linked.includes(week) ? 'checked' : ''}> Week ${week}
+      const links = entries.map(entry => {
+        const weeks = (entry.entries ?? [entry]).map(item => item.week);
+        return { title: entry.title, weeks, number: entry.module ?? entry.week, checked: weeks.some(week => linked.includes(week)) };
+      });
+      const selectedNumbers = links.filter(link => link.checked).map(link => link.number);
+      form.querySelector('.study-week-links').innerHTML = links.length ? `<details ${selectedNumbers.length ? 'open' : ''}>
+        <summary>Linked checklist ${label.toLowerCase()}s${selectedNumbers.length ? ' · ' + selectedNumbers.join(', ') : ' (optional)'}</summary>
+        <div class="study-week-link-options">${links.map(({ title, weeks, number, checked }) => `<label class="study-form-check" title="${escapeText(title)}">
+          <input type="checkbox" name="weeks" value="${weeks.join(',')}" ${checked ? 'checked' : ''}> ${label} ${number}
         </label>`).join('')}</div>
       </details>` : '';
     }

@@ -1,6 +1,6 @@
-import { exams } from './study-plan.js';
-import { calendarWeeks, creditedMinutes, durationLabel, mockFocus, pendingStudyBlocks, saveStudyProgress, validStudyDate } from './study-progress.js';
-import { studyActions } from './study-actions.js?v=move-between-weeks-20261112';
+import { exams } from './study-plan.js?v=cven3101-modules-20261123';
+import { calendarWeeks, creditedMinutes, durationLabel, mockFocus, pendingStudyBlocks, saveStudyProgress, validStudyDate } from './study-progress.js?v=cven3101-modules-20261123';
+import { studyActions } from './study-actions.js?v=cven3101-modules-20261123';
 
 let selectedTerm;
 let selectedWeek;
@@ -44,6 +44,17 @@ function renderExam(exam) {
 
 function renderChecklist(courses, escapeText) {
   return courses.map(course => {
+    if (course.modules) {
+      const finalModules = course.modules.filter(module => module.module >= 4 && module.status !== 'N/A');
+      const done = finalModules.filter(module => module.status === 'Done').length;
+      return `<div class="study-module-summary">
+        <a href="#course/cven3101/modules">${courseBadge(course.code)} Final modules</a>
+        <strong>${done}/${finalModules.length} done</strong>
+      </div>
+      <ul class="study-module-checklist">${finalModules.map(module =>
+        `<li><span>Module ${module.module} · ${escapeText(module.title)}</span><small>${escapeText(module.status)}</small></li>`).join('')}
+      </ul>`;
+    }
     const next = [...course.weeks].sort((a, b) => a.week - b.week)
       .find(week => week.status !== 'Done' && week.status !== 'N/A');
     return `<span>${courseBadge(course.code)} ${next ? 'Week ' + escapeText(next.week) + ' · ' + escapeText(next.status) : 'All weeks checked'}</span>`;
@@ -223,8 +234,8 @@ function mountCalendar(root, useSeed) {
         <h2 id="final-exams-title">Final exams</h2>
         <div class="study-exam-list">${exams.map(renderExam).join('')}</div>
       </section>` : ''}
-      <details class="study-rail-details card">
-        <summary>Next unchecked weeks</summary>
+      <details class="study-rail-details card" ${useSeed ? 'open' : ''}>
+        <summary>${useSeed ? 'Checklist progress' : 'Next unchecked weeks'}</summary>
         <div class="study-checklist"></div>
       </details>
       ${useSeed ? `<details class="study-rail-details study-readiness card">

@@ -25,6 +25,28 @@ function exam(course, detail) {
   return fixedSession(start, end, course, 'Final exam', room + '. ' + detail, 'exam');
 }
 
+// Reuse the existing calendar IDs so unrelated sessions and saved work keep their identity.
+export const operationsFinalPlan = [
+  ['2026-11-18-2', '2026-11-23', session(75, operations, 'Module 4 · Contract management',
+    'Review delivery systems and contract pricing. Work through Workshop 4 Question 1 on fees, incentives and delay penalties, then try the delivery-system scenarios.', [5])],
+  ['2026-11-20-2', '2026-11-23', session(90, operations, 'Module 6 · Earthwork and foundation cost estimation',
+    'Start with bank, loose and compacted volumes. Practise hauling, excavation quantities, mass diagrams and shoring using Workshop 6. Record the key units and formulas.', [8])],
+  ['2026-11-21-1', '2026-11-24', session(45, operations, 'Module 7 · Construction safety and quality',
+    'Review hazards and controls, QA versus QC, and total quality management. Do the three Module 7 question-bank MCQs and explain the answers.', [9])],
+  ['2026-11-23-0', '2026-11-24', session(75, operations, 'Module 8 · Engineering ethics and risk',
+    'Practise expected monetary value and decision trees, then review ethics and risk responses. Use the Module 8 risk MCQs from the question bank.', [10])],
+  ['2026-11-24-0', '2026-11-24', session(25, operations, 'Module 5 · Quick estimating review',
+    'Redo one time-and-location adjustment, one hourly labour cost and one fuel calculation. Check the escalation decimal and which wage each on-cost uses.', [])],
+  ['2026-11-25-0', '2026-11-25', { ...session(135, operations, 'Timed practice · 2024 final',
+    'Attempt the 2024 Inspera paper with your draft A4 reference sheet and calculator. Allow 15 minutes for reading, then 120 minutes for the paper.', []), mock: true }],
+  ['2026-11-25-1', '2026-11-25', session(60, operations, 'Mark the 2024 final',
+    'Use the answer key. Log your score and redo the highest-cost mistakes. Note which formulas or conversions to add to the A4 sheet.', [])],
+  ['2026-11-23-1', '2026-11-26', session(45, operations, 'Finish the double-sided A4 sheet',
+    'Use the completed Module 5 section and add the essential formulas, units and reminders for Modules 4, 6, 7 and 8.', [])],
+  ['2026-11-26-0', '2026-11-26', session(60, operations, 'Final CVEN3101 review',
+    'Redo your two weakest calculation setups and review missed MCQs on contracts, safety, quality, ethics and risk.', [])],
+];
+
 export const studyWeeks = [
   {
     title: 'Set up and get ahead',
@@ -65,7 +87,7 @@ export const studyWeeks = [
       day('11-18', 'Review the reports and start exam practice', 'Evening free.',
         session(120, operations, 'Part B rubric review', 'Read the draft against each marking criterion. Fix the highest-impact omissions.'),
         session(90, fluids, 'Draft the Pipe Flow discussion', 'Explain trends, measurement uncertainty and deviations using your actual results.'),
-        session(60, operations, 'Week 5 · Contract management', 'Start the first unchecked CVEN3101 topic. Review key contract roles and obligations, then answer two short scenarios and justify your decisions.', [5])),
+        session(60, operations, 'Module 4 · Contract management', 'Review key contract roles and obligations, then answer two short scenarios and justify your decisions.', [5])),
       day('11-19', 'Prepare Part B for submission', 'Evening free.',
         session(120, operations, 'Part B final PDF and Turnitin', 'Check formatting, references and rubric coverage. Run the separate similarity check, then submit through the marking link if ready.'),
         session(105, fluids, 'Pipe Flow report draft', 'Complete the figures, discussion and conclusion. Check that every claim matches the data.'),
@@ -73,19 +95,19 @@ export const studyWeeks = [
       day('11-20', 'Part B due at noon', 'Evening free.',
         session(30, operations, 'Confirm Part B submission', 'Verify the final PDF and receipt before noon on 20 Nov. Use this as a submission buffer if you have already uploaded it.'),
         session(105, fluids, 'Pipe Flow report final review', 'Check plots, friction factor calculations and discussion against the rubric. Submit early if ready.'),
-        session(90, operations, 'Weeks 7–8 · Cost estimation', 'Do one conceptual and one detailed estimating question. Check quantities, rates and units before comparing with the solution.', [7, 8])),
+        session(90, operations, 'Modules 5–6 · Cost estimation', 'Do one conceptual and one detailed estimating question. Check quantities, rates and units before comparing with the solution.', [7, 8])),
       day('11-21', 'Light Saturday', 'Afternoon and evening free.',
         session(75, fluids, 'Pipe Flow report submission check', 'Confirm the report is uploaded before 11:55 pm. Use spare time for one pipe-loss problem.'),
-        session(90, operations, 'Weeks 9–10 · Safety, quality, ethics and risk', 'Review QA versus QC and practise two scenario answers. State a decision, justify it and describe how you would manage the risk.', [9, 10])),
+        session(90, operations, 'Modules 7–8 · Safety, quality, ethics and risk', 'Review QA versus QC and practise two scenario answers. State a decision, justify it and describe how you would manage the risk.', [9, 10])),
       day('11-22', 'Full day off', 'Keep the whole day free. If plans change, swap this rest day with another flexible day.'),
     ],
   },
   {
     title: 'CVEN3101 exam week',
-    summary: 'Complete two timed CVEN3101 mocks, then shift to Soil Mechanics. Finish Fluid Mechanics Assignment 5 early.',
+    summary: 'Review CVEN3101 Modules 4 and 6–8, sit the 2024 practice final and finish the A4 sheet. Finish Fluid Mechanics Assignment 5 early.',
     days: [
       day('11-23', 'CVEN3101 mock 1', 'Evening free.',
-        session(135, operations, 'Timed mock 1', 'Use an unseen paper or matched set from Weeks 5–10. Use the permitted materials and match the exam window.'),
+        session(135, operations, 'Timed mock 1', 'Use an unseen paper or matched set from Modules 4–8. Use the permitted materials and match the exam window.'),
         session(75, operations, 'Mark and diagnose', 'Use the marking guide. Classify lost marks as knowledge, method, reading, time or arithmetic.'),
         session(60, soils, 'Week 4 · Stress in soils and one-dimensional seepage', 'Revisit effective stress in a layered soil. Use a worked example for head loss and hydraulic gradient, then solve a similar question.', [4])),
       day('11-24', 'Repair the gaps', 'Evening free.',

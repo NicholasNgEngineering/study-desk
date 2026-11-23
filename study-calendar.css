@@ -63,6 +63,10 @@
 }
 
 .study-checklist { display: grid; gap: 8px; padding: 2px 14px 12px; color: #4d5d52; font-size: 12px; }
+.study-module-summary, .study-module-checklist li { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.study-module-summary a { color: var(--green); }
+.study-module-summary strong, .study-module-checklist small { white-space: nowrap; }
+.study-module-checklist { display: grid; gap: 7px; margin: 0 0 4px; padding: 0 0 10px; border-bottom: 1px solid var(--line); list-style: none; }
 .study-swap-guide { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 38px; margin-bottom: 10px; padding: 7px 10px; border-radius: 6px; color: #526459; font-size: 12px; }
 .study-swap-active { background: #e8f0e7; color: #315743; }
 .study-swap-guide button { border: 1px solid #b3c6b3; border-radius: 5px; background: white; color: #315743; padding: 3px 8px; font-size: 11px; cursor: pointer; }
