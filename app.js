@@ -292,16 +292,62 @@ function courseChecklist(item) {
 
 function refreshChecklist() {
  studyProgress = readStudyProgress(state.studyCalendar, activeTerm === baseTerm);
+ let changed = false;
  if (activeTerm === baseTerm && state.studyCalendar?.operationsFinalPlanApplied !== true) {
   const operations = state.courses.find(item => item.code === 'CVEN3101');
   const conceptual = operations.weeks.find(week => week.week === 7);
   const earthworks = operations.weeks.find(week => week.week === 8);
   if (conceptual && conceptual.status !== 'N/A') conceptual.status = 'Done';
   if (earthworks?.status === 'Not started') earthworks.status = 'In progress';
+  changed = true;
+ }
+ if (activeTerm === baseTerm && state.soilModuleDeadlinesApplied !== true) {
+  applySoilModuleDeadlines();
+  changed = true;
+ }
+ if (changed) {
   state.studyCalendar = saveStudyProgress(studyProgress);
   save();
  }
  linkedWeeks = weeklyBlockProgress(studyProgress);
+}
+
+function applySoilModuleDeadlines() {
+ const soils = state.courses.find(item => item.code === 'CVEN3202');
+ const completedIds = ['soil-lab1-report', 'soil-mod1'];
+ const moduleIds = ['soil-mod7', 'soil-mod8'];
+ let modulesToComplete = false;
+ for (const task of soils.tasks) {
+  if (completedIds.includes(task.id)) {
+   task.status = 'Done';
+   task.assumed = false;
+  }
+  const moduleIndex = moduleIds.indexOf(task.id);
+  if (moduleIndex === -1) continue;
+  task.date = '2026-12-01';
+  if (task.details === 'Bonus module. Exact requirement and closing date unknown.') {
+   task.details = 'Bonus-mark module in the Week ' + (9 + moduleIndex) + ' materials on Moodle. The announcement gives the date without a cutoff time.';
+   task.source = 'CVEN3202 Moodle announcement from Arman';
+  }
+  modulesToComplete ||= isOpen(task);
+ }
+ soils.warnings = soils.warnings.map(warning => warning.replace(' Learning Module 1, 7 and 8 dates remain unknown.', ''));
+ const blockId = 'custom-c3639a57-9abb-4ea6-b0d2-4809374e0f78';
+ if (modulesToComplete && !studyProgress.blocks.has(blockId)) {
+  const block = {
+   date: '2026-11-30',
+   kind: 'study',
+   course: soils.code,
+   minutes: 45,
+   title: 'Complete Learning Modules 7 and 8',
+   detail: 'Open the bonus modules in the Week 9 and 10 materials on Moodle. Complete any remaining attempt and confirm your submissions before exam day.',
+   checklistWeeks: [],
+  };
+  (studyProgress.days[block.date] ??= []).push(blockId);
+  studyProgress.blocks.set(blockId, block);
+  studyProgress.changes.set(blockId, block);
+ }
+ state.soilModuleDeadlinesApplied = true;
 }
 
 function quickCheck(item, kind, code) {
@@ -656,8 +702,8 @@ function renderTaskResults(kind) {
  for (const task of tasks) {
   const days = task.date ? dayDiff(task.date, reference) : null;
   let label = 'Later this term';
-  if (days === null) label = 'Unknown dates';
-  else if (task.status === 'Done') label = 'Completed';
+  if (task.status === 'Done') label = 'Completed';
+  else if (days === null) label = 'Unknown dates';
   else if (days < 0) label = 'Overdue';
   else if (days <= 7) label = 'Next 7 days';
   groups.get(label).push(task);

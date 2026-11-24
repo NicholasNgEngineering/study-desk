@@ -481,7 +481,7 @@
           "time": "",
           "details": "Activity sheet upload and online report module are separate requirements. Lab total weight: 2.5%.",
           "notes": "Deadline and exact requirements unknown until confirmed from course materials.",
-          "status": "Not started",
+          "status": "Done",
           "type": "Lab",
           "source": "Excel tracker: separate lab components",
           "url": "",
@@ -494,7 +494,7 @@
           "time": "",
           "details": "Bonus module. Exact requirement and closing date unknown.",
           "notes": "",
-          "status": "Not started",
+          "status": "Done",
           "type": "Module",
           "source": "Excel tracker: modules 1-8",
           "url": "",
@@ -503,26 +503,26 @@
         {
           "id": "soil-mod7",
           "title": "Learning Module 7",
-          "date": null,
+          "date": "2026-12-01",
           "time": "",
-          "details": "Bonus module. Exact requirement and closing date unknown.",
+          "details": "Bonus-mark module in the Week 9 materials on Moodle. The announcement gives the date without a cutoff time.",
           "notes": "",
           "status": "Not started",
           "type": "Module",
-          "source": "Excel tracker: modules 1-8",
+          "source": "CVEN3202 Moodle announcement from Arman",
           "url": "",
           "assumed": false
         },
         {
           "id": "soil-mod8",
           "title": "Learning Module 8",
-          "date": null,
+          "date": "2026-12-01",
           "time": "",
-          "details": "Bonus module. Exact requirement and closing date unknown.",
+          "details": "Bonus-mark module in the Week 10 materials on Moodle. The announcement gives the date without a cutoff time.",
           "notes": "",
           "status": "Not started",
           "type": "Module",
-          "source": "Excel tracker: modules 1-8",
+          "source": "CVEN3202 Moodle announcement from Arman",
           "url": "",
           "assumed": false
         }
@@ -545,7 +545,7 @@
         "Weekly study progress is imported from Excel. Past dated assessment tasks were assumed done once, as requested on 11 Nov 2026. Future tasks will not complete automatically.",
         "Calendar is a snapshot checked on 11 Nov 2026. Later changes must be entered here or provided in chat.",
         "Lab attendance is assumed complete for sessions already past, but is not counted as a submission. Lab 2 sheet is due 15 Nov; its report module closed 10 Nov. Lab 3 and 4 sheet uploads and modules also have different deadlines.",
-        "Quiz scope conflicts remain unresolved in the source outline. Confirm the quiz notices. Learning Module 1, 7 and 8 dates remain unknown."
+        "Quiz scope conflicts remain unresolved in the source outline. Confirm the quiz notices."
       ]
     },
     {
